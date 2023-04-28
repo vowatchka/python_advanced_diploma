@@ -1,0 +1,55 @@
+# See at https://docs.docker.com/engine/install/ubuntu/#install-using-the-convenience-script
+# See at https://docs.docker.com/engine/install/linux-postinstall/
+- name: Get docker version
+  shell: docker --version
+  register: docker_version
+  ignore_errors: yes
+
+- name: Install docker
+  vars:
+    docker_convenience_script_path: /tmp/get-docker.sh
+  block:
+    - name: Download docker convenience script
+      shell: curl -fsSL https://get.docker.com -o {{ docker_convenience_script_path }}
+
+    - name: Execute docker convenience script
+      shell: bash {{ docker_convenience_script_path }}
+
+    - name: Get docker version
+      shell: docker --version
+      register: installed_docker_version
+
+    - name: Debug docker version
+      debug:
+        msg: "{{ installed_docker_version.stdout}}"
+      when: installed_docker_version is defined
+
+    - name: Add docker group
+      shell: groupadd docker
+      ignore_errors: yes
+
+    - name: Add user to docker group
+      shell: usermod -aG docker root && usermod -aG docker vagrant
+      ignore_errors: yes
+
+    - name: Activate the changes to group
+      shell: newgrp docker
+      ignore_errors: yes
+  rescue:
+      - name: Remove docker
+        apt:
+          pkg:
+            - docker
+            - docker-engine
+            - docker.io
+            - containerd
+            - runc
+          state: absent
+  always:
+    - name: Remove convenience script
+      file:
+        path: "{{ docker_convenience_script_path }}"
+        state: absent
+  when: |
+    docker_version.stdout is not defined
+      or docker_version.stdout == ""

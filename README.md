@@ -27,3 +27,19 @@
 * SQLAlchemy
 * PostgreSQL
 * Docker
+
+## Запуск окружения разработки
+1. Поднять ВМ (будут установлены ansible, docker и docker-compose)
+   ```shell
+   vagrant up
+   ```
+
+2. Подключиться к ВМ
+   ```shell
+   vagrant ssh
+   ```
+   
+3. В терминале ВМ перейти в директорию с проектом
+   ```shell
+   cd /vagrant
+   ```
