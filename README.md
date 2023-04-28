@@ -29,7 +29,7 @@
 * Docker
 
 ## Запуск окружения разработки
-1. Поднять ВМ (будут установлены ansible, docker и docker-compose)
+1. Поднять ВМ (на ВМ будут установлены ansible, docker и docker-compose)
    ```shell
    vagrant up
    ```
@@ -43,3 +43,9 @@
    ```shell
    cd /vagrant
    ```
+
+## Структура БД
+
+![структура бд](docs/imgs/db-structure.png)
+
+Структура спроектирована в [dbdiagram.io](https://dbdiagram.io/d/644b964bdca9fb07c433064b).
