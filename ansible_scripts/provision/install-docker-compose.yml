@@ -1,0 +1,35 @@
+# See at https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-compose-on-ubuntu-20-04
+- name: Get docker-compose version
+  shell: docker-compose --version
+  register: docker_compose_version
+  ignore_errors: yes
+
+- name: Install docker-compose
+  vars:
+    docker_compose_release: v2.17.3
+    docker_compose_file: /usr/local/bin/docker-compose
+  block:
+    - name: Download docker-compose
+      shell: |
+        sudo curl -L \
+        "https://github.com/docker/compose/releases/download/{{ docker_compose_release }}/docker-compose-$(uname -s)-$(uname -m)" \
+        -o {{ docker_compose_file }}
+
+    - name: Make docker-compose executable
+      shell: sudo chmod +x {{ docker_compose_file }}
+
+    - name: Get docker-compose version
+      shell: docker-compose --version
+      register: installed_docker_compose_version
+
+    - name: Debug docker-compose version
+      debug:
+        msg: "{{ installed_docker_compose_version.stdout}}"
+      when: installed_docker_compose_version is defined
+  rescue:
+    - name: Remove docker-compose
+      shell: rm -rf {{ docker_compose_file }}
+      become: yes
+  when: |
+    docker_compose_version.stdout is not defined
+      or docker_compose_version.stdout == ""
