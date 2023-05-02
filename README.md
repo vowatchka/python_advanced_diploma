@@ -43,6 +43,11 @@
    ```shell
    cd /vagrant
    ```
+   
+3. Поднять контейнеры для разработки
+   ```shell
+   docker-compose up -d
+   ```
 
 ## Структура БД
 
