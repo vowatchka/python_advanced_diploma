@@ -16,10 +16,10 @@ async def test_table_user_exist(engine):
 @pytest.mark.parametrize(
     "new_user",
     [
-        models.User(nickname="test_user", api_key="a" * 30),
-        models.User(nickname="test_user", first_name="First Name", api_key="a" * 30),
-        models.User(nickname="test_user", last_name="Last Name", api_key="a" * 30),
-        models.User(nickname="test_user", first_name="Full Name", last_name="Full Name", api_key="a" * 30),
+        models.User(nickname="test_user1", api_key="a" * 30),
+        models.User(nickname="test_user2", first_name="First Name", api_key="a" * 30),
+        models.User(nickname="test_user3", last_name="Last Name", api_key="a" * 30),
+        models.User(nickname="test_user4", first_name="Full Name", last_name="Full Name", api_key="a" * 30),
     ],
 )
 async def test_add_user(rollbacked_db_session, new_user):

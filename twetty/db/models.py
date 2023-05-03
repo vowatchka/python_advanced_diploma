@@ -1,6 +1,6 @@
-from sqlalchemy import Column, Integer, String, CheckConstraint
+from sqlalchemy import Column, Integer, String, CheckConstraint, DateTime, ForeignKey, func
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy.orm import sessionmaker, declarative_base, relationship
 
 from .pg import POSTGRES_URL, make_async_postgres_url
 
@@ -61,5 +61,44 @@ class User(Base):
         CheckConstraint(
             "length(api_key) >= 30 and length(api_key) <= 256",
             name="api_key_length"
+        ),
+    )
+
+    tweets = relationship("Tweet", back_populates="user", cascade="all, delete-orphan")
+
+
+class Tweet(Base):
+    """Таблица твитов."""
+
+    __tablename__ = "tweet"
+
+    id = Column(Integer, primary_key=True)
+    content = Column(
+        String(280),
+        nullable=False,
+        doc="Содержимое твита",
+        comment="Содержимое твита",
+    )
+    posted_at = Column(
+        DateTime,
+        nullable=False,
+        server_default=func.now(),
+        doc="Дата-время твита",
+        comment="Дата-время твита",
+    )
+    user_id = Column(
+        Integer,
+        ForeignKey("user.id", ondelete="CASCADE"),
+        nullable=False,
+        doc="Пользователь, сделавший твит",
+        comment="Пользователь, сделавший твит",
+    )
+
+    user = relationship("User", back_populates="tweets")
+
+    __table_args__ = (
+        CheckConstraint(
+            "length(content) >= 1",
+            name="content_length"
         ),
     )

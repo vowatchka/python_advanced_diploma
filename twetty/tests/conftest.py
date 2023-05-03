@@ -35,11 +35,17 @@ async def engine(anyio_backend):
 
     # наполняем таблицы начальными данными
     async with TestSession(bind=test_engine) as session:
-        session.add(
-            models.User(
-                nickname="predefined_test_user",
-                api_key="test" * 20,
-            )
+        session.add_all(
+            [
+                models.User(
+                    nickname="predefined_test_user",
+                    api_key="test" * 20,
+                ),
+                models.User(
+                    nickname="tweeter_user",
+                    api_key="tweeter_user" * 20,
+                ),
+            ]
         )
         await session.commit()
 
@@ -59,13 +65,14 @@ async def engine(anyio_backend):
 async def conn(engine):
     async with engine.begin() as conn:
         yield conn
+        await conn.close()
 
 
 @pytest.fixture
 async def db_session(conn):
     async with TestSession(bind=conn) as test_session:
         yield test_session
-    await test_session.close()
+        await test_session.close()
 
 
 @pytest.fixture
