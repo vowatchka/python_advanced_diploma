@@ -72,15 +72,5 @@ async def conn(engine):
 async def db_session(conn):
     async with TestSession(bind=conn) as test_session:
         yield test_session
+        await test_session.rollback()
         await test_session.close()
-
-
-@pytest.fixture
-async def rollbacked_db_session(db_session):
-    yield db_session
-    await db_session.rollback()
-
-
-@pytest.fixture
-async def not_rollbacked_db_session(db_session):
-    yield db_session
