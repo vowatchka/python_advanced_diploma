@@ -1,7 +1,12 @@
+from __future__ import annotations
+
+from datetime import datetime
+from typing import Optional
+
 from sqlalchemy import Column, Integer, String, CheckConstraint, DateTime, ForeignKey, func
-from sqlalchemy.ext.associationproxy import association_proxy
+from sqlalchemy.ext.associationproxy import association_proxy, AssociationProxy
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy.orm import sessionmaker, declarative_base, relationship
+from sqlalchemy.orm import sessionmaker, declarative_base, relationship, Mapped
 
 from .pg import POSTGRES_URL, make_async_postgres_url
 
@@ -16,29 +21,29 @@ class User(Base):
 
     __tablename__ = "user"
 
-    id = Column(Integer, primary_key=True)
-    nickname = Column(
+    id: Mapped[int] = Column(Integer, primary_key=True)
+    nickname: Mapped[str] = Column(
         String,
         unique=True,
         nullable=False,
         doc="Никнейм",
         comment="Никнейм",
     )
-    first_name = Column(
+    first_name: Mapped[Optional[str]] = Column(
         String,
         nullable=True,
         default=None,
         doc="Имя",
         comment="Имя",
     )
-    last_name = Column(
+    last_name: Mapped[Optional[str]] = Column(
         String,
         nullable=True,
         default=None,
         doc="Фамилия",
         comment="Фамилия",
     )
-    api_key = Column(
+    api_key: Mapped[str] = Column(
         String,
         unique=True,
         nullable=False,
@@ -65,10 +70,10 @@ class User(Base):
         ),
     )
 
-    tweets = relationship("Tweet", back_populates="user", cascade="all, delete-orphan")
-    likes = relationship("Like", back_populates="user", cascade="all, delete-orphan")
+    tweets: Mapped[list[Tweet]] = relationship("Tweet", back_populates="user", cascade="all, delete-orphan")
+    likes: Mapped[list[Like]] = relationship("Like", back_populates="user", cascade="all, delete-orphan")
 
-    liked_tweets = association_proxy("likes", "tweet")
+    liked_tweets: AssociationProxy[list[Tweet]] = association_proxy("likes", "tweet")
 
 
 class Tweet(Base):
@@ -76,21 +81,21 @@ class Tweet(Base):
 
     __tablename__ = "tweet"
 
-    id = Column(Integer, primary_key=True)
-    content = Column(
+    id: Mapped[int] = Column(Integer, primary_key=True)
+    content: Mapped[str] = Column(
         String(280),
         nullable=False,
         doc="Содержимое твита",
         comment="Содержимое твита",
     )
-    posted_at = Column(
+    posted_at: Mapped[datetime] = Column(
         DateTime,
         nullable=False,
         server_default=func.now(),
         doc="Дата-время твита",
         comment="Дата-время твита",
     )
-    user_id = Column(
+    user_id: Mapped[int] = Column(
         Integer,
         ForeignKey("user.id", ondelete="CASCADE"),
         nullable=False,
@@ -98,11 +103,11 @@ class Tweet(Base):
         comment="Пользователь, сделавший твит",
     )
 
-    user = relationship("User", back_populates="tweets")
-    medias = relationship("TweetMedia", back_populates="tweet", cascade="all, delete-orphan")
-    likes = relationship("Like", back_populates="tweet", cascade="all, delete-orphan")
+    user: Mapped[User] = relationship("User", back_populates="tweets")
+    medias: Mapped[list[TweetMedia]] = relationship("TweetMedia", back_populates="tweet", cascade="all, delete-orphan")
+    likes: Mapped[list[Like]] = relationship("Like", back_populates="tweet", cascade="all, delete-orphan")
 
-    liked_by_users = association_proxy("likes", "user")
+    liked_by_users: AssociationProxy[list[User]] = association_proxy("likes", "user")
 
     __table_args__ = (
         CheckConstraint(
@@ -117,21 +122,21 @@ class TweetMedia(Base):
 
     __tablename__ = "tweet_media"
 
-    id = Column(Integer, primary_key=True)
-    rel_uri = Column(
+    id: Mapped[int] = Column(Integer, primary_key=True)
+    rel_uri: Mapped[str] = Column(
         String,
         nullable=False,
         doc="Относительный URI медиа-файла",
         comment="Относительный URI медиа-файла",
     )
-    uploaded_at = Column(
+    uploaded_at: Mapped[datetime] = Column(
         DateTime,
         nullable=False,
         server_default=func.now(),
         doc="Дата-время загрузки файла",
         comment="Дата-время загрузки файла",
     )
-    tweet_id = Column(
+    tweet_id: Mapped[Optional[int]] = Column(
         Integer,
         ForeignKey("tweet.id", ondelete="CASCADE"),
         nullable=True,
@@ -140,7 +145,7 @@ class TweetMedia(Base):
         comment="Твит",
     )
 
-    tweet = relationship("Tweet", back_populates="medias")
+    tweet: Mapped[Tweet] = relationship("Tweet", back_populates="medias")
 
     __table_args__ = (
         CheckConstraint(
@@ -155,15 +160,15 @@ class Like(Base):
 
     __tablename__ = "like"
 
-    id = Column(Integer, primary_key=True)
-    tweet_id = Column(
+    id: Mapped[int] = Column(Integer, primary_key=True)
+    tweet_id: Mapped[int] = Column(
         Integer,
         ForeignKey("tweet.id", ondelete="CASCADE"),
         nullable=False,
         doc="Твит",
         comment="Твит",
     )
-    user_id = Column(
+    user_id: Mapped[int] = Column(
         Integer,
         ForeignKey("user.id", ondelete="CASCADE"),
         nullable=False,
@@ -171,5 +176,5 @@ class Like(Base):
         comment="Пользователь",
     )
 
-    tweet = relationship("Tweet", back_populates="likes")
-    user = relationship("User", back_populates="likes")
+    tweet: Mapped[Tweet] = relationship("Tweet", back_populates="likes")
+    user: Mapped[User] = relationship("User", back_populates="likes")
