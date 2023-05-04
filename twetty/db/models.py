@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, CheckConstraint, DateTime, ForeignKey, func
+from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker, declarative_base, relationship
 
@@ -65,6 +66,9 @@ class User(Base):
     )
 
     tweets = relationship("Tweet", back_populates="user", cascade="all, delete-orphan")
+    likes = relationship("Like", back_populates="user", cascade="all, delete-orphan")
+
+    liked_tweets = association_proxy("likes", "tweet")
 
 
 class Tweet(Base):
@@ -96,6 +100,9 @@ class Tweet(Base):
 
     user = relationship("User", back_populates="tweets")
     medias = relationship("TweetMedia", back_populates="tweet", cascade="all, delete-orphan")
+    likes = relationship("Like", back_populates="tweet", cascade="all, delete-orphan")
+
+    liked_by_users = association_proxy("likes", "user")
 
     __table_args__ = (
         CheckConstraint(
@@ -141,3 +148,28 @@ class TweetMedia(Base):
             name="rel_uri_length"
         ),
     )
+
+
+class Like(Base):
+    """Таблица лайков."""
+
+    __tablename__ = "like"
+
+    id = Column(Integer, primary_key=True)
+    tweet_id = Column(
+        Integer,
+        ForeignKey("tweet.id", ondelete="CASCADE"),
+        nullable=False,
+        doc="Твит",
+        comment="Твит",
+    )
+    user_id = Column(
+        Integer,
+        ForeignKey("user.id", ondelete="CASCADE"),
+        nullable=False,
+        doc="Пользователь",
+        comment="Пользователь",
+    )
+
+    tweet = relationship("Tweet", back_populates="likes")
+    user = relationship("User", back_populates="likes")

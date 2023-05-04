@@ -49,7 +49,11 @@ async def engine(anyio_backend):
                 models.User(
                     nickname="user_with_medias",
                     api_key="test3" * 20,
-                )
+                ),
+                models.User(
+                    nickname="liker",
+                    api_key="test4" * 20
+                ),
             ]
         )
         await session.commit()
@@ -60,7 +64,11 @@ async def engine(anyio_backend):
                 models.Tweet(
                     content="tweet",
                     user_id=3,
-                )
+                ),
+                models.Tweet(
+                    content="tweet with likes",
+                    user_id=3
+                ),
             ]
         )
         await session.commit()
