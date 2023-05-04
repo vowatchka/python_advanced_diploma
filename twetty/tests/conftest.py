@@ -35,16 +35,32 @@ async def engine(anyio_backend):
 
     # наполняем таблицы начальными данными
     async with TestSession(bind=test_engine) as session:
+        # пользователи
         session.add_all(
             [
                 models.User(
                     nickname="predefined_test_user",
-                    api_key="test" * 20,
+                    api_key="test1" * 20,
                 ),
                 models.User(
-                    nickname="tweeter_user",
-                    api_key="tweeter_user" * 20,
+                    nickname="user_with_tweets",
+                    api_key="test2" * 20,
                 ),
+                models.User(
+                    nickname="user_with_medias",
+                    api_key="test3" * 20,
+                )
+            ]
+        )
+        await session.commit()
+
+        # твиты
+        session.add_all(
+            [
+                models.Tweet(
+                    content="tweet",
+                    user_id=3,
+                )
             ]
         )
         await session.commit()

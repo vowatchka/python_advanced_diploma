@@ -136,7 +136,7 @@ async def test_api_key_unique(db_session):
     """Проверка наличия ограничения UNIQUE поля api_key."""
     with pytest.raises(IntegrityError, match=r'.*UniqueViolationError.*'):
         db_session.add(
-            models.User(nickname="test1", api_key="test" * 20),
+            models.User(nickname="test1", api_key="test1" * 20),
         )
         await db_session.commit()
 

@@ -95,10 +95,49 @@ class Tweet(Base):
     )
 
     user = relationship("User", back_populates="tweets")
+    medias = relationship("TweetMedia", back_populates="tweet", cascade="all, delete-orphan")
 
     __table_args__ = (
         CheckConstraint(
             "length(content) >= 1",
             name="content_length"
+        ),
+    )
+
+
+class TweetMedia(Base):
+    """Таблица медиа-файлов, прикрепленных к твитам."""
+
+    __tablename__ = "tweet_media"
+
+    id = Column(Integer, primary_key=True)
+    rel_uri = Column(
+        String,
+        nullable=False,
+        doc="Относительный URI медиа-файла",
+        comment="Относительный URI медиа-файла",
+    )
+    uploaded_at = Column(
+        DateTime,
+        nullable=False,
+        server_default=func.now(),
+        doc="Дата-время загрузки файла",
+        comment="Дата-время загрузки файла",
+    )
+    tweet_id = Column(
+        Integer,
+        ForeignKey("tweet.id", ondelete="CASCADE"),
+        nullable=True,
+        default=None,
+        doc="Твит",
+        comment="Твит",
+    )
+
+    tweet = relationship("Tweet", back_populates="medias")
+
+    __table_args__ = (
+        CheckConstraint(
+            "length(rel_uri) >= 1",
+            name="rel_uri_length"
         ),
     )

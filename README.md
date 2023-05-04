@@ -31,7 +31,7 @@
 ## Запуск окружения разработки
 1. Поднять ВМ (на ВМ будут установлены ansible, docker и docker-compose)
    ```shell
-   vagrant up
+   vagrant up --provision
    ```
 
 2. Подключиться к ВМ
