@@ -41,6 +41,33 @@ async def test_tweet_id_foreign_key(db_session, new_like):
 
 
 @pytest.mark.anyio
+async def test_user_id_not_null(db_session):
+    """Проверка наличия ограничения NOT NULL поля user_id."""
+    with pytest.raises(IntegrityError, match=r".*NotNullViolationError.*"):
+        db_session.add(
+            models.Like(
+                tweet_id=1,
+                user_id=None,
+            )
+        )
+        await db_session.commit()
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    "new_like",
+    [
+        *generate_test_models(models.Like, range(100, 106), tweet_id=1, user_id=lambda x: x),
+    ]
+)
+async def test_user_id_foreign_key(db_session, new_like):
+    """Проверка наличия ограничения FOREIGN KEY поля user_id."""
+    with pytest.raises(IntegrityError, match=r".*ForeignKeyViolationError.*"):
+        db_session.add(new_like)
+        await db_session.commit()
+
+
+@pytest.mark.anyio
 async def test_cascade_delete_likes(db_session):
     """Проверка наличия каскадного удаления лайков."""
     tweet_id = 2
@@ -48,8 +75,6 @@ async def test_cascade_delete_likes(db_session):
     user_id_4 = 4
     likes = [
         models.Like(tweet_id=tweet_id, user_id=user_id_1),
-        models.Like(tweet_id=tweet_id, user_id=user_id_1),
-        models.Like(tweet_id=tweet_id, user_id=user_id_4),
         models.Like(tweet_id=tweet_id, user_id=user_id_4),
     ]
 
@@ -87,27 +112,59 @@ async def test_cascade_delete_likes(db_session):
 
 
 @pytest.mark.anyio
-async def test_user_id_not_null(db_session):
-    """Проверка наличия ограничения NOT NULL поля user_id."""
-    with pytest.raises(IntegrityError, match=r".*NotNullViolationError.*"):
-        db_session.add(
-            models.Like(
-                tweet_id=1,
-                user_id=None,
-            )
-        )
-        await db_session.commit()
+async def test_can_like_own_tweet(db_session):
+    """Проверка, что можно лайкать свой твит."""
+    user = models.User(
+        nickname="testtest",
+        api_key="a" * 30,
+    )
+    db_session.add(user)
+    await db_session.commit()
+
+    tweet = models.Tweet(
+        content="test",
+        user_id=user.id
+    )
+    db_session.add(tweet)
+    await db_session.commit()
+
+    new_like = models.Like(
+        tweet_id=tweet.id,
+        user_id=user.id,
+    )
+    db_session.add(new_like)
+    await db_session.commit()
 
 
 @pytest.mark.anyio
-@pytest.mark.parametrize(
-    "new_like",
-    [
-        *generate_test_models(models.Like, range(100, 106), tweet_id=1, user_id=lambda x: x),
-    ]
-)
-async def test_user_id_foreign_key(db_session, new_like):
-    """Проверка наличия ограничения FOREIGN KEY поля user_id."""
-    with pytest.raises(IntegrityError, match=r".*ForeignKeyViolationError.*"):
-        db_session.add(new_like)
+async def test_cannot_like_twice(db_session):
+    """Проверка, что один пользователь не может добавить еще один лайк
+    твиту, который он уже залайкал."""
+    user = models.User(
+        nickname="testtest",
+        api_key="a" * 30,
+    )
+    db_session.add(user)
+    await db_session.commit()
+
+    tweet = models.Tweet(
+        content="test",
+        user_id=user.id
+    )
+    db_session.add(tweet)
+    await db_session.commit()
+
+    like_once = models.Like(
+        tweet_id=tweet.id,
+        user_id=user.id
+    )
+    db_session.add(like_once)
+    await db_session.commit()
+
+    like_twice = models.Like(
+        tweet_id=tweet.id,
+        user_id=user.id
+    )
+    with pytest.raises(IntegrityError, match=r".*UniqueViolationError.*"):
+        db_session.add(like_twice)
         await db_session.commit()

@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import Column, Integer, String, CheckConstraint, DateTime, ForeignKey, func
+from sqlalchemy import Column, Integer, String, CheckConstraint, DateTime, ForeignKey, func, UniqueConstraint
 from sqlalchemy.ext.associationproxy import association_proxy, AssociationProxy
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker, declarative_base, relationship, Mapped
@@ -178,3 +178,7 @@ class Like(Base):
 
     tweet: Mapped[Tweet] = relationship("Tweet", back_populates="likes")
     user: Mapped[User] = relationship("User", back_populates="likes")
+
+    __table_args__ = (
+        UniqueConstraint("tweet_id", "user_id", name="unique_like"),
+    )
