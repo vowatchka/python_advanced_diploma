@@ -72,8 +72,16 @@ class User(Base):
 
     tweets: Mapped[list[Tweet]] = relationship("Tweet", back_populates="user", cascade="all, delete-orphan")
     likes: Mapped[list[Like]] = relationship("Like", back_populates="user", cascade="all, delete-orphan")
+    followers: Mapped[list[Follower]] = relationship("Follower", back_populates="user",
+                                                     foreign_keys="Follower.user_id",
+                                                     cascade="all, delete-orphan")
+    followings: Mapped[list[Follower]] = relationship("Follower", back_populates="follower",
+                                                      foreign_keys="Follower.follower_id",
+                                                      cascade="all, delete-orphan")
 
     liked_tweets: AssociationProxy[list[Tweet]] = association_proxy("likes", "tweet")
+    followed_users: AssociationProxy[list[User]] = association_proxy("followers", "follower")
+    following_users: AssociationProxy[list[User]] = association_proxy("followings", "user")
 
 
 class Tweet(Base):
@@ -181,4 +189,37 @@ class Like(Base):
 
     __table_args__ = (
         UniqueConstraint("tweet_id", "user_id", name="unique_like"),
+    )
+
+
+class Follower(Base):
+    """Таблица подписчиков."""
+
+    __tablename__ = "follower"
+
+    id: Mapped[int] = Column(Integer, primary_key=True)
+    user_id: Mapped[int] = Column(
+        Integer,
+        ForeignKey("user.id", ondelete="CASCADE"),
+        nullable=False,
+        doc="Пользователь, на которого подписаны",
+        comment="Пользователь, на которого подписаны",
+    )
+    follower_id: Mapped[int] = Column(
+        Integer,
+        ForeignKey("user.id", ondelete="CASCADE"),
+        nullable=False,
+        doc="Подписчик",
+        comment="Подписчик",
+    )
+
+    user: Mapped[User] = relationship("User", back_populates="followers", foreign_keys=[user_id])
+    follower: Mapped[User] = relationship("User", back_populates="followings", foreign_keys=[follower_id])
+
+    __table_args__ = (
+        CheckConstraint(
+            "user_id <> follower_id",
+            name="user_and_follower_not_equal"
+        ),
+        UniqueConstraint("user_id", "follower_id", name="unique_following")
     )
