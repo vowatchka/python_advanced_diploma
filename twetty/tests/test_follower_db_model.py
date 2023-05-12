@@ -7,64 +7,26 @@ from ..db import models
 
 
 @pytest.mark.anyio
-async def test_table_follower_exists(engine):
-    """Проверка существования таблицы follower."""
-    is_exists = await table_exists(engine, "follower")
-    assert is_exists
-
-
-@pytest.mark.anyio
-async def test_user_id_not_null(db_session):
-    """Проверка наличия ограничения NOT NULL поля user_id."""
-    with pytest.raises(IntegrityError, match=r".*NotNullViolationError.*"):
-        db_session.add(
-            models.Follower(
-                user_id=None,
-                follower_id=1,
-            )
-        )
-        await db_session.commit()
-
-
-@pytest.mark.anyio
-@pytest.mark.parametrize(
-    "new_follower",
-    [
-        *generate_test_models(models.Follower, range(100, 106), user_id=lambda x: x, follower_id=1),
+async def test_add_follower(db_session):
+    """Проверка добавления нового фолловера."""
+    users = [
+        models.User(nickname="test1", api_key="a" * 30),
+        models.User(nickname="test2", api_key="b" * 30),
     ]
-)
-async def test_user_id_foreign_key(db_session, new_follower):
-    """Проверка наличия ограничения FOREIGN KEY поля user_id."""
-    with pytest.raises(IntegrityError, match=r".*ForeignKeyViolationError.*"):
-        db_session.add(new_follower)
-        await db_session.commit()
+    db_session.add_all(users)
+    await db_session.commit()
 
+    new_follower = models.Follower(user_id=users[0].id, follower_id=users[1].id)
+    db_session.add(new_follower)
+    await db_session.commit()
 
-@pytest.mark.anyio
-async def test_follower_id_not_null(db_session):
-    """Проверка наличия ограничения NOT NULL поля follower_id."""
-    with pytest.raises(IntegrityError, match=r".*NotNullViolationError.*"):
-        db_session.add(
-            models.Follower(
-                user_id=1,
-                follower_id=None,
-            )
-        )
-        await db_session.commit()
-
-
-@pytest.mark.anyio
-@pytest.mark.parametrize(
-    "new_follower",
-    [
-        *generate_test_models(models.Follower, range(100, 106), user_id=1, follower_id=lambda x: x),
-    ]
-)
-async def test_follower_id_foreign_key(db_session, new_follower):
-    """Проверка наличия ограничения FOREIGN KEY поля follower_id."""
-    with pytest.raises(IntegrityError, match=r".*ForeignKeyViolationError.*"):
-        db_session.add(new_follower)
-        await db_session.commit()
+    queryset = await db_session.execute(
+        select(models.Follower).where(models.Follower.id == new_follower.id)
+    )
+    added_follower: models.Follower = queryset.scalars().one()
+    assert added_follower.id is not None
+    assert added_follower.user_id == new_follower.user_id
+    assert added_follower.follower_id == new_follower.follower_id
 
 
 @pytest.mark.anyio

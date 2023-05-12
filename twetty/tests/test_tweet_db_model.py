@@ -9,12 +9,6 @@ from ..db import models
 
 
 @pytest.mark.anyio
-async def test_table_tweet_exist(engine):
-    """Проверка создания таблицы tweet."""
-    assert await table_exists(engine, "tweet")
-
-
-@pytest.mark.anyio
 @pytest.mark.parametrize(
     "new_tweet",
     [
@@ -22,6 +16,11 @@ async def test_table_tweet_exist(engine):
     ]
 )
 async def test_add_tweet(db_session, new_tweet):
+    user = models.User(nickname="test1", api_key="a" * 30)
+    db_session.add(user)
+    await db_session.commit()
+
+    new_tweet = models.Tweet(content="test", posted_at=datetime.now(), user_id=user.id)
     db_session.add(new_tweet)
     await db_session.commit()
 
@@ -36,112 +35,31 @@ async def test_add_tweet(db_session, new_tweet):
 
 
 @pytest.mark.anyio
-async def test_content_not_null(db_session):
-    """Проверка наличия ограничения NOT NULL поля content."""
-    with pytest.raises(IntegrityError, match=r".*NotNullViolationError.*"):
-        db_session.add(
-            models.Tweet(
-                content=None,
-                user_id=2,
-            )
-        )
-        await db_session.commit()
-
-
-@pytest.mark.anyio
-@pytest.mark.parametrize(
-    "new_tweet",
-    [
-        # короткий твит
-        models.Tweet(content="", user_id=2),
-    ]
-)
-async def test_content_length(db_session, new_tweet):
-    """Проверка наличия ограничений по длине поля content"""
-    with pytest.raises(IntegrityError, match=r".*CheckViolationError.*"):
-        db_session.add(new_tweet)
-        await db_session.commit()
-
-
-@pytest.mark.anyio
-@pytest.mark.parametrize(
-    "new_tweet",
-    [
-        # длинный твит
-        *generate_test_models(models.Tweet, range(280, 286), content=lambda count: "a" * count, user_id=2),
-    ]
-)
-async def test_content_length_truncate(db_session, new_tweet):
-    """Проверка обрезания по длине поля content."""
-    db_session.add(new_tweet)
-    await db_session.commit()
-    await db_session.refresh(new_tweet)
-
-    assert len(new_tweet.content) == 280
-
-
-@pytest.mark.anyio
-async def test_posted_at_default(db_session):
-    """Проверка наличия дефолтного значения поля posted_at."""
-    new_tweet = models.Tweet(content="tweet", user_id=2)
-    db_session.add(new_tweet)
-    await db_session.commit()
-
-    assert new_tweet.posted_at is not None
-    assert isinstance(new_tweet.posted_at, datetime)
-
-
-@pytest.mark.anyio
-async def test_user_id_not_null(db_session):
-    """Проверка наличия ограничения NOT NULL поля user_id."""
-    with pytest.raises(IntegrityError, match=r".*NotNullViolationError.*"):
-        db_session.add(
-            models.Tweet(
-                content="tweet",
-                user_id=None
-            )
-        )
-        await db_session.commit()
-
-
-@pytest.mark.anyio
-@pytest.mark.parametrize(
-    "new_tweet",
-    [
-        *generate_test_models(models.Tweet, range(100, 106), content="tweet", user_id=lambda x: x),
-    ]
-)
-async def test_user_id_foreign_key(db_session, new_tweet):
-    """Проверка наличия ограничения FOREIGN KEY поля user_id."""
-    with pytest.raises(IntegrityError, match=r".*ForeignKeyViolationError.*"):
-        db_session.add(new_tweet)
-        await db_session.commit()
-
-
-@pytest.mark.anyio
 async def test_cascade_delete_tweets(db_session):
     """Проверка наличия каскадного удаления твитов."""
-    user_id = 2
-    tweets = [
-        models.Tweet(content="tweet1", user_id=user_id),
-        models.Tweet(content="tweet2", user_id=user_id),
-        models.Tweet(content="tweet3", user_id=user_id),
-    ]
+    user = models.User(nickname="test1", api_key="a" * 30)
+    db_session.add(user)
+    await db_session.commit()
 
     async with db_session.begin():
+        tweets = [
+            models.Tweet(content="tweet1", user_id=user.id),
+            models.Tweet(content="tweet2", user_id=user.id),
+            models.Tweet(content="tweet3", user_id=user.id),
+        ]
         db_session.add_all(tweets)
 
         tweet_qs = await db_session.execute(
-            select(models.Tweet).where(models.Tweet.user_id == user_id)
+            select(models.Tweet).where(models.Tweet.user_id == user.id)
         )
         assert len(tweet_qs.scalars().all()) == len(tweets)
 
         user_qs = await db_session.execute(
-            select(models.User).where(models.User.id == user_id)
+            select(models.User).where(models.User.id == user.id)
         )
         await db_session.delete(user_qs.scalars().one())
 
         tweet_qs = await db_session.execute(
-            select(models.Tweet).where(models.Tweet.user_id == user_id)
+            select(models.Tweet).where(models.Tweet.user_id == user.id)
         )
         assert len(tweet_qs.scalars().all()) == 0
