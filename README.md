@@ -49,6 +49,11 @@
    docker-compose up -d
    ```
    
+## Миграции
+```shell
+docker-compose exec -it api alembic upgrade head
+```
+   
 ## Тестирование
 ```shell
 docker-compose exec -it api pytest -vv
