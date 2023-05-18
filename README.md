@@ -29,9 +29,9 @@
 * Docker
 
 ## Запуск окружения разработки
-1. Поднять ВМ (будут установлены ansible, docker и docker-compose)
+1. Поднять ВМ (на ВМ будут установлены ansible, docker и docker-compose)
    ```shell
-   vagrant up
+   vagrant up --provision
    ```
 
 2. Подключиться к ВМ
@@ -43,3 +43,30 @@
    ```shell
    cd /vagrant
    ```
+   
+3. Поднять контейнеры для разработки
+   ```shell
+   docker-compose up -d
+   ```
+   
+## Миграции
+```shell
+docker-compose exec -it api alembic upgrade head
+```
+   
+## Тестирование
+```shell
+docker-compose exec -it api pytest -vv
+```
+
+## Структура БД
+
+![структура бд](docs/imgs/db-structure.png)
+
+Структура спроектирована в [dbdiagram.io](https://dbdiagram.io/d/644b964bdca9fb07c433064b).
+
+## Полезные материалы
+* [SQLAlchemy: relationship для асинхронного подключения, способ 1](https://stackoverflow.com/a/70105356)
+* [SQLAlchemy: relationship для асинхронного подключения, способ 2](https://stackoverflow.com/a/75947988)
+* [SQLAlchemy: множественные ForeignKey на одно и то же поле](https://stackoverflow.com/a/22357235)
+* [FastAPI: Переопределение имен полей в респонсе](https://stackoverflow.com/a/60211253)
