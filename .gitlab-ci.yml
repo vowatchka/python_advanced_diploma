@@ -27,7 +27,7 @@ testing:
   services:
     - $POSTGRES_IMAGE
   script:
-    - pytest -v $WORK_DIR
+    - pytest -v --color=yes $WORK_DIR
   only:
     - main
     - merge_requests
