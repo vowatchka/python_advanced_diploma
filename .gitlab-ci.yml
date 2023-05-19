@@ -1,0 +1,33 @@
+variables:
+  PYTHON_IMAGE: python:3.9-slim
+  POSTGRES_IMAGE: postgres:15.2-alpine
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  WORK_DIR: ./twetty
+  POSTGRES_DB: test_db
+  POSTGRES_USER: test
+  POSTGRES_PASSWORD: test
+  POSTGRES_URL: "postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@postgres:5432/$POSTGRES_DB"
+
+image: $PYTHON_IMAGE
+
+cache:
+  paths:
+    - .cache/pip
+
+before_script:
+  - python --version  # for debug
+  - python -m pip install --upgrade pip setuptools wheel
+  - python -m pip install -r requirements.txt
+
+stages:
+  - test
+
+testing:
+  stage: test
+  services:
+    - $POSTGRES_IMAGE
+  script:
+    - pytest -v $WORK_DIR
+  only:
+    - main
+    - merge_requests
