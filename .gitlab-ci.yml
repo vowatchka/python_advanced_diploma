@@ -30,4 +30,5 @@ testing:
     - pytest -v --color=yes $WORK_DIR
   only:
     - main
+    - master
     - merge_requests
