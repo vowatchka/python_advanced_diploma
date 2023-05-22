@@ -2,20 +2,12 @@ from datetime import datetime
 
 import pytest
 from sqlalchemy import select
-from sqlalchemy.exc import IntegrityError
 
-from .utils import table_exists, generate_test_models
 from ..db import models
 
 
 @pytest.mark.anyio
-@pytest.mark.parametrize(
-    "new_tweet",
-    [
-        models.Tweet(content="test tweet", posted_at=datetime.now(), user_id=2)
-    ]
-)
-async def test_add_tweet(db_session, new_tweet):
+async def test_add_tweet(db_session):
     user = models.User(nickname="test1", api_key="a" * 30)
     db_session.add(user)
     await db_session.commit()
@@ -31,7 +23,7 @@ async def test_add_tweet(db_session, new_tweet):
     assert added_tweet.id is not None
     assert added_tweet.content == new_tweet.content
     assert added_tweet.posted_at == new_tweet.posted_at
-    assert added_tweet.user_id == added_tweet.user_id
+    assert added_tweet.user_id == new_tweet.user_id
 
 
 @pytest.mark.anyio

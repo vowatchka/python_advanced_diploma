@@ -11,6 +11,9 @@ variables:
 image: $PYTHON_IMAGE
 
 cache:
+  key:
+    files:
+      - ./requirements.txt
   paths:
     - .cache/pip
 
@@ -20,7 +23,17 @@ before_script:
   - python -m pip install -r requirements.txt
 
 stages:
+  - lint
   - test
+
+linting:
+  stage: lint
+  script:
+    - flake8 -v --color always $WORK_DIR
+  only:
+    - main
+    - master
+    - merge_requests
 
 testing:
   stage: test

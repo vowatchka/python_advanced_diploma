@@ -1,8 +1,6 @@
 import pytest
-from sqlalchemy import inspect, select
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy import select
 
-from .utils import table_exists, generate_test_models
 from ..db import models
 
 
