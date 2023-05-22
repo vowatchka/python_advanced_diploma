@@ -3,7 +3,7 @@ from datetime import datetime
 import pytest
 from sqlalchemy import select
 
-from ..db import models
+from ...db import models
 
 
 @pytest.mark.anyio
