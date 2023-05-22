@@ -2,9 +2,7 @@ from datetime import datetime
 
 import pytest
 from sqlalchemy import select
-from sqlalchemy.exc import IntegrityError
 
-from .utils import table_exists, generate_test_models
 from ..db import models
 
 

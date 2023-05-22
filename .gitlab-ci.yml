@@ -29,7 +29,7 @@ stages:
 linting:
   stage: lint
   script:
-    - flake8 --color always $WORK_DIR
+    - flake8 -v --color always $WORK_DIR
   only:
     - main
     - master
