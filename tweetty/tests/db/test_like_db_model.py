@@ -2,7 +2,7 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
-from ..db import models
+from ...db import models
 
 
 @pytest.mark.anyio

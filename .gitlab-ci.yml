@@ -2,7 +2,7 @@ variables:
   PYTHON_IMAGE: python:3.9-slim
   POSTGRES_IMAGE: postgres:15.2-alpine
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
-  WORK_DIR: ./twetty
+  WORK_DIR: ./tweetty
   POSTGRES_DB: test_db
   POSTGRES_USER: test
   POSTGRES_PASSWORD: test

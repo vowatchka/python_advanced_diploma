@@ -7,9 +7,9 @@ services:
     ports:
       - "5000:5000"
     environment:
-      POSTGRES_URL: "postgresql://dev:dev@db:5432/twetty"
+      POSTGRES_URL: "postgresql://dev:dev@db:5432/tweetty"
     volumes:
-      - ./twetty/:/app/
+      - ./tweetty/:/app/
     restart: always
     depends_on:
       - db
@@ -19,7 +19,7 @@ services:
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_DB: twetty
+      POSTGRES_DB: tweetty
       POSTGRES_USER: dev
       POSTGRES_PASSWORD: dev
     volumes:
