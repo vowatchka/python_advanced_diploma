@@ -33,11 +33,19 @@
 ## Запуск окружения разработки
 1. Поднять ВМ (на ВМ будут установлены ansible, docker и docker-compose)
    ```shell
+   # On Linux
+   make vm-up-provision
+   
+   # On Windows
    vagrant up --provision
    ```
 
 2. Подключиться к ВМ
    ```shell
+   # On Linux
+   make vm-connect
+   
+   # On Windows
    vagrant ssh
    ```
    
@@ -48,17 +56,17 @@
    
 3. Поднять контейнеры для разработки
    ```shell
-   docker-compose up -d
+   make up
    ```
    
 ## Миграции
 ```shell
-docker-compose exec -it api alembic upgrade head
+make migrate
 ```
    
 ## Тестирование
 ```shell
-docker-compose exec -it api pytest -vv
+make test
 ```
 
 ## Структура БД

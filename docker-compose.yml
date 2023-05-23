@@ -10,6 +10,7 @@ services:
       POSTGRES_URL: "postgresql://dev:dev@db:5432/tweetty"
     volumes:
       - ./tweetty/:/app/
+      - ./.flake8:/.flake8
     restart: always
     depends_on:
       - db
