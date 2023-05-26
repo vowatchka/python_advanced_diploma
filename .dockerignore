@@ -1,0 +1,8 @@
+**
+!requirements.txt
+!.flake8
+!tweetty/
+**/tests
+**/__pycache__
+**/*.py[cod]
+**/*$py.class

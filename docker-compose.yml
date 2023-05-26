@@ -3,14 +3,14 @@ version: "3.8"
 services:
   api:
     build: .
-    command: "uvicorn --host 0.0.0.0 --port 5000 --reload main:app"
+    command: "uvicorn --host 0.0.0.0 --port 5000 --reload tweetty.main:app"
     ports:
       - "5000:5000"
     environment:
       POSTGRES_URL: "postgresql://dev:dev@db:5432/tweetty"
     volumes:
-      - ./tweetty/:/app/
-      - ./.flake8:/.flake8
+      - ./tweetty:/app/tweetty
+      - ./.flake8:/app/.flake8
     restart: always
     depends_on:
       - db

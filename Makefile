@@ -42,13 +42,13 @@ rebuild: # rebuild and recreate containers
 
 .PHONY: test
 test: # run tests
-	docker-compose exec -it api pytest -v
+	docker-compose exec api pytest -v
 
 .PHONY: lint
 lint: # run linting
-	docker-compose exec -it api /bin/bash -c "cd .. && flake8 --verbose --color always /app"
+	docker-compose exec api flake8 --verbose --color always ./tweetty
 
 .PHONY: migrate
 migrate: # apply migrations
-	docker-compose exec -it api alembic upgrade head
+	docker-compose exec api alembic upgrade head
 
