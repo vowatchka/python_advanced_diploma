@@ -80,3 +80,5 @@ make test
 * [SQLAlchemy: relationship для асинхронного подключения, способ 2](https://stackoverflow.com/a/75947988)
 * [SQLAlchemy: множественные ForeignKey на одно и то же поле](https://stackoverflow.com/a/22357235)
 * [FastAPI: Переопределение имен полей в респонсе](https://stackoverflow.com/a/60211253)
+* [FastAPI: Авторизация с APIKey, пример 1](https://itsjoshcampos.codes/fast-api-api-key-authorization)
+* [FastAPI: Авторизация с APIKey, пример 2](https://nilsdebruin.medium.com/fastapi-authentication-revisited-enabling-api-key-authentication-122dc5975680)
