@@ -15,5 +15,4 @@ RUN python -m pip install --upgrade pip setuptools wheel \
     && python -m pip install -r requirements.txt \
     && rm -rf /root/.cache/pip
 
-# COPY ./tweetty ./tweetty
-COPY . .
+COPY ./tweetty ./tweetty
