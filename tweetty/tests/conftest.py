@@ -35,46 +35,6 @@ async def engine(anyio_backend):
     async with test_engine.begin() as conn:
         await conn.run_sync(models.Base.metadata.create_all)
 
-    # наполняем таблицы начальными данными
-    async with TestSession(bind=test_engine) as session:
-        # пользователи
-        session.add_all(
-            [
-                models.User(
-                    nickname="predefined_test_user",
-                    api_key="test1" * 20,
-                ),
-                models.User(
-                    nickname="user_with_tweets",
-                    api_key="test2" * 20,
-                ),
-                models.User(
-                    nickname="user_with_medias",
-                    api_key="test3" * 20,
-                ),
-                models.User(
-                    nickname="liker",
-                    api_key="test4" * 20
-                ),
-            ]
-        )
-        await session.commit()
-
-        # твиты
-        session.add_all(
-            [
-                models.Tweet(
-                    content="tweet",
-                    user_id=3,
-                ),
-                models.Tweet(
-                    content="tweet with likes",
-                    user_id=3
-                ),
-            ]
-        )
-        await session.commit()
-
     yield test_engine
 
     # удаляем таблицы
