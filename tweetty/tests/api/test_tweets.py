@@ -37,7 +37,7 @@ async def test_publish_new_tweet(client: AsyncClient, test_user: db_models.User,
         "",
         " ",
         "   ",
-        "\r\n"
+        "\r\n",
     ]
 )
 async def test_publish_empty_tweet(client: AsyncClient, test_user: db_models.User, tweet_data: str):
@@ -69,3 +69,21 @@ async def test_truncate_tweet_text(client: AsyncClient, test_user: db_models.Use
     )
     tweet = tweet_qs.scalar_one()
     assert len(tweet.content) == tweet_max_length
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    "api_key",
+    [
+        "",
+        "no" * 15,
+    ]
+)
+async def test_publish_new_tweet_auth(client: AsyncClient, api_key: str):
+    """Проверка авторизации для публикации нового твита."""
+    response = await client.post(
+        "/api/tweets",
+        json={"tweet_data": "test"},
+        headers={"api-key": api_key}
+    )
+    assert response.status_code == 401

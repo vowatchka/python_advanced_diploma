@@ -21,7 +21,7 @@ async def get_api_key(api_key: Annotated[str, Security(api_key_header)]) -> str:
     """Возвращает ключ авторизации пользователя."""
     if not api_key:
         raise HTTPException(
-            status_code=403,
+            status_code=401,
             detail="Missed APIKey header"
         )
     return api_key
@@ -39,7 +39,7 @@ async def get_authorized_user(
 
     if not user:
         raise HTTPException(
-            status_code=403,
+            status_code=401,
             detail="No user with such APIKey"
         )
     return user
