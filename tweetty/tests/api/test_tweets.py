@@ -53,7 +53,7 @@ async def test_publish_empty_tweet(client: AsyncClient, test_user: db_models.Use
 @pytest.mark.anyio
 async def test_truncate_tweet_text(client: AsyncClient, test_user: db_models.User, db_session: AsyncSession):
     """Проверка обрезания текста твита, если он слишком длинный."""
-    tweet_max_length = api_models.NewTweetIn.avail_content_length().max
+    tweet_max_length = api_models.NewTweetIn.ContentFieldConfig.curtail_length
 
     response = await client.post(
         "/api/tweets",

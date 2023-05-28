@@ -1,5 +1,3 @@
-from dataclasses import dataclass
-
 from pydantic import BaseModel, constr, Field
 
 
@@ -16,44 +14,33 @@ class ResultModel(BaseModel):
 class NewTweetIn(BaseModel):
     """Модель запроса нового твита."""
 
-    @dataclass(frozen=True)
-    class _AvailContentLength:
-        min: int = 1
-        max: int = 280
+    class ContentFieldConfig:
+        min_length: int = 1
+        curtail_length: int = 280
 
-    @dataclass(frozen=True)
-    class _AvailMediaItems:
-        min: int = 0
-        max: int = 10
+    class MediasFieldConfig:
+        min_items: int = 0
+        max_items: int = 10
 
     content: constr(
         strip_whitespace=True,
-        min_length=_AvailContentLength.min,
-        curtail_length=_AvailContentLength.max
+        min_length=ContentFieldConfig.min_length,
+        curtail_length=ContentFieldConfig.curtail_length,
     ) = Field(
         ...,
         title="Содержимое твита",
         description="Содержимое твита",
         alias="tweet_data",
     )
-    tweet_media_ids: list[int] = Field(
+    medias: list[int] = Field(
         default=list(),
-        min_items=_AvailMediaItems.min,
-        max_items=_AvailMediaItems.max,
+        min_items=MediasFieldConfig.min_items,
+        max_items=MediasFieldConfig.max_items,
         title="Медиа-файлы",
         description="Список медиа, прикрепленных к твиту",
+        alias="tweet_media_ids",
         exclude=True,
     )
-
-    @classmethod
-    def avail_content_length(cls) -> _AvailContentLength:
-        """Допустимая длина текста твита."""
-        return cls._AvailContentLength()
-
-    @classmethod
-    def avail_media_items(cls) -> _AvailMediaItems:
-        """Допустимое количество медиа-файлов, прикрепленных к твиту."""
-        return cls._AvailMediaItems()
 
 
 class NewTweetOut(ResultModel):
