@@ -66,6 +66,10 @@ make migrate
    
 ## Тестирование
 ```shell
+make lint
+```
+
+```shell
 make test
 ```
 
@@ -82,3 +86,6 @@ make test
 * [FastAPI: Переопределение имен полей в респонсе](https://stackoverflow.com/a/60211253)
 * [FastAPI: Авторизация с APIKey, пример 1](https://itsjoshcampos.codes/fast-api-api-key-authorization)
 * [FastAPI: Авторизация с APIKey, пример 2](https://nilsdebruin.medium.com/fastapi-authentication-revisited-enabling-api-key-authentication-122dc5975680)
+* [FastAPI: Передача файлов в запросе](https://fastapi.tiangolo.com/tutorial/request-files/)
+* [FastAPI: Как ограничить размер загружаемого файла](https://stackoverflow.com/questions/72338900/how-to-limit-python-fastapi-post-request-upload-file-size)
+* [HTTPX: Передача файлов в запросе AsyncClient](https://stackoverflow.com/a/72104365)
