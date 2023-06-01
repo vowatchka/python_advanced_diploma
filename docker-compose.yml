@@ -11,6 +11,8 @@ services:
     volumes:
       - ./tweetty:/app/tweetty
       - ./.flake8:/app/.flake8
+      - ./pyproject.toml:/app/pyproject.toml
+      - ./lint.sh:/app/lint.sh
     restart: always
     depends_on:
       - db

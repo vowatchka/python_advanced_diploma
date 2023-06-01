@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Any
 
 from sqlalchemy import Column, Integer, String, CheckConstraint, DateTime, ForeignKey, func, UniqueConstraint
 from sqlalchemy.ext.associationproxy import association_proxy, AssociationProxy
@@ -13,7 +13,7 @@ from .pg import POSTGRES_URL, make_async_postgres_url
 engine = create_async_engine(make_async_postgres_url(POSTGRES_URL))
 Session = sessionmaker(expire_on_commit=False, class_=AsyncSession)
 
-Base: type = declarative_base()
+Base: Any = declarative_base()
 
 
 class User(Base):

@@ -46,7 +46,7 @@ test: # run tests
 
 .PHONY: lint
 lint: # run linting
-	docker-compose exec api flake8 --verbose --color always ./tweetty
+	docker-compose exec api /bin/bash -c "./lint.sh ./tweetty"
 
 .PHONY: migrate
 migrate: # apply migrations
