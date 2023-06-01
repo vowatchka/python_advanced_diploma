@@ -41,8 +41,8 @@ rebuild: # rebuild and recreate containers
 	docker-compose up -d --build
 
 .PHONY: test
-test: # run tests
-	docker-compose exec api pytest -v
+test: # run tests. Use ARGS for additional arguments
+	docker-compose exec api pytest -v $(ARGS)
 
 .PHONY: lint
 lint: # run linting

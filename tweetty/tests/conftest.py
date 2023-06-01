@@ -7,6 +7,9 @@ from sqlalchemy.orm import sessionmaker
 
 from ..api import create_api
 from ..db import models, pg
+from ..api.routers import medias as media_routers
+
+from .api.test_medias import generate_mediafile_name
 
 TestSession = sessionmaker(expire_on_commit=False, class_=AsyncSession)
 
@@ -67,6 +70,7 @@ def api(db_session):
     _api = create_api()
 
     _api.dependency_overrides[models.db_session] = lambda: db_session
+    _api.dependency_overrides[media_routers.generate_mediafile_name] = generate_mediafile_name
 
     yield _api
 

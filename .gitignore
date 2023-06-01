@@ -140,20 +140,4 @@ dmypy.json
 .swp
 
 # project files
-*.log
-module_03_ci_culture_beginning/homework/hw5_add/pylint-output.json
-module_05_processes_and_threads/homework/hw4/test_redirect_stdout.txt
-module_05_processes_and_threads/homework/hw4/test_redirect_stderr.txt
-module_06_debugging_begin/homework/hw1_2/stderr.txt
-module_06_debugging_begin/homework/hw3/skillbox_json_messages.jsonl
-!module_06_debugging_begin/homework/hw5/tests/measure_me.log
-module_07_logging_part_2/homework/logging_tree.txt
-*.db
-!module_10_db1/homework/hw*/hw_*.db
-module_25_asynchronous_programming/homework/hw_1/cats
-module_25_asynchronous_programming/homework/hw_2/cats
-module_25_asynchronous_programming/homework/hw_2/get_cats/cats
-module_25_asynchronous_programming/homework/hw_3/urls.txt
-module_26_fastapi/homework/.env
-module_27_postgres_migrations/hw/.env
-module_28_security/homework/task_1/users.txt
+tweetty/static/
