@@ -3,3 +3,9 @@ ignore_missing_imports=true
 no_site_packages=true
 check_untyped_defs=true
 exclude="^tweetty/migrations"
+
+[tool.isort]
+line_length=120
+include_trailing_comma=true
+group_by_package=true
+skip=["tweetty/migrations"]

@@ -1,4 +1,4 @@
-from collections.abc import Iterable, Generator
+from collections.abc import Generator, Iterable
 
 from sqlalchemy import inspect
 from sqlalchemy.ext.asyncio import AsyncEngine

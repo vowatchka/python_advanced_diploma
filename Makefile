@@ -48,6 +48,10 @@ test: # run tests
 lint: # run linting
 	docker-compose exec api /bin/bash -c "./lint.sh ./tweetty"
 
+.PHONE: isort
+isort: # run python isort module
+	docker-compose exec api isort --color ./tweetty
+
 .PHONY: migrate
 migrate: # apply migrations
 	docker-compose exec api alembic upgrade head
