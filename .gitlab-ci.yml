@@ -25,6 +25,7 @@ before_script:
 stages:
   - lint
   - test
+  - release
 
 linting:
   stage: lint
@@ -46,3 +47,27 @@ testing:
     - main
     - master
     - merge_requests
+
+release:
+  stage: release
+  before_script:
+    # degug
+    - echo $GITLAB_CI
+    # install git
+    - apt-get update -y
+    - apt-get install -y git
+    # setup git
+    - git config --local user.name "semantic-release"
+    - git config --local user.email "semantic-release"
+    - git switch $CI_COMMIT_BRANCH
+    - git pull
+    # install python-semantic-release
+    - python -m pip install --upgrade pip setuptools wheel
+    - python -m pip install python-semantic-release~=7.34
+  script:
+    - semantic-release publish -v DEBUG
+  only:
+    - main
+    - master
+  except:
+    - tags

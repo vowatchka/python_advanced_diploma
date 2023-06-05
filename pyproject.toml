@@ -1,3 +1,7 @@
+[tool.poetry]
+name="tweetty"
+version="0.0.0"
+
 [tool.mypy]
 ignore_missing_imports=true
 no_site_packages=true
@@ -9,3 +13,15 @@ line_length=120
 include_trailing_comma=true
 group_by_package=true
 skip=["tweetty/migrations"]
+
+[tool.semantic_release]
+branch="master"
+version_toml="pyproject.toml:tool.poetry.version"
+major_on_zero=false
+upload_to_pypi=false
+upload_to_repository=false
+build_command=false
+hvcs="gitlab"
+hvcs_domain="gitlab.skillbox.ru"
+hvcs_api_domain="gitlab.skillbox.ru/api/v4"
+tag_format="{version}"
