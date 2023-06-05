@@ -35,7 +35,7 @@
    ```shell
    # On Linux
    make vm-up-provision
-   
+
    # On Windows
    vagrant up --provision
    ```
@@ -44,26 +44,26 @@
    ```shell
    # On Linux
    make vm-connect
-   
+
    # On Windows
    vagrant ssh
    ```
-   
+
 3. В терминале ВМ перейти в директорию с проектом
    ```shell
    cd /vagrant
    ```
-   
+
 3. Поднять контейнеры для разработки
    ```shell
    make up
    ```
-   
+
 ## Миграции
 ```shell
 make migrate
 ```
-   
+
 ## Тестирование
 ```shell
 make test
@@ -76,6 +76,9 @@ make test
 Структура спроектирована в [dbdiagram.io](https://dbdiagram.io/d/644b964bdca9fb07c433064b).
 
 ## Полезные материалы
+* [pyproject.toml](https://python-poetry.org/docs/pyproject/)
+* [CI: Python Semantic Release](https://python-semantic-release.readthedocs.io/en/latest/)
+* [CI: Python Semantic Release example](https://guicommits.com/semantic-release-to-automate-versioning-and-publishing-to-pypi-with-github-actions/)
 * [SQLAlchemy: relationship для асинхронного подключения, способ 1](https://stackoverflow.com/a/70105356)
 * [SQLAlchemy: relationship для асинхронного подключения, способ 2](https://stackoverflow.com/a/75947988)
 * [SQLAlchemy: множественные ForeignKey на одно и то же поле](https://stackoverflow.com/a/22357235)
