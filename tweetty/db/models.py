@@ -16,6 +16,14 @@ Session = sessionmaker(expire_on_commit=False, class_=AsyncSession)
 Base: Any = declarative_base()
 
 
+async def db_session():
+    session: AsyncSession = Session(bind=engine)
+    try:
+        yield session
+    finally:
+        await session.close()
+
+
 class User(Base):
     """Таблица пользователей."""
 

@@ -1,3 +1,3 @@
-from fastapi import FastAPI
+from tweetty.api import create_api
 
-app = FastAPI()
+app = create_api()

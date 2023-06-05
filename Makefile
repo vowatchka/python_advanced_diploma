@@ -56,3 +56,7 @@ isort: # run python isort module
 migrate: # apply migrations
 	docker-compose exec api alembic upgrade head
 
+.PHONY: app-logs
+app-logs: # show application logs. Use ARGS for additional arguments
+	docker-compose logs api $(ARGS)
+
