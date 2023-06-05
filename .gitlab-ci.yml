@@ -60,8 +60,8 @@ release:
     - git config --local user.name "semantic-release"
     - git config --local user.email "semantic-release"
     - git switch $CI_COMMIT_BRANCH
-    - git tag -d 0.2.0
     - git pull
+    - git tag -d 0.0.2
     # install python-semantic-release
     - python -m pip install --upgrade pip setuptools wheel
     - python -m pip install python-semantic-release~=7.34
