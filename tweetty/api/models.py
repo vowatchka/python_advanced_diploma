@@ -1,4 +1,4 @@
-from pydantic import BaseModel, constr, Field
+from pydantic import BaseModel, Field, constr
 
 
 class ResultModel(BaseModel):
@@ -22,7 +22,7 @@ class NewTweetIn(BaseModel):
         min_items: int = 0
         max_items: int = 10
 
-    content: constr(
+    content: constr(  # type: ignore[valid-type]
         strip_whitespace=True,
         min_length=ContentFieldConfig.min_length,
         curtail_length=ContentFieldConfig.curtail_length,
