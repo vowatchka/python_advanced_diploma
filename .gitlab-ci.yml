@@ -65,9 +65,10 @@ release:
     - python -m pip install --upgrade pip setuptools wheel
     - python -m pip install python-semantic-release~=7.34
   script:
-    - semantic-release publish -v DEBUG
+    - semantic-release publish -v INFO
   only:
     - main
     - master
   except:
     - tags
+    - /^\d+\.\d+\.\d+/
