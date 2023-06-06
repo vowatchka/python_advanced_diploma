@@ -67,6 +67,10 @@ release:
     - python -m pip install --upgrade pip setuptools wheel
     - python -m pip install python-semantic-release~=7.34
   script:
+    # semantic-release выполняет поиск коммитов от головного
+    # до самого раннего нового коммита, но при этом не вкючая
+    # сам головной коммит. Как следствие, головной коммит не будет
+    # учтен при вычислении новой версии. Изменить это поведение нельзя.
     - semantic-release publish -v INFO
   only:
     - main
