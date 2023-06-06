@@ -2,6 +2,10 @@ from fastapi import HTTPException
 
 from .models import ErrorModel
 
+# описания кодов HTTP
+HTTP_403_FORBIDDEN_DESC = "Forbidden"
+HTTP_500_INTERNAL_SERVER_ERROR_DESC = "Internal Server Error"
+
 
 def http_exception(ex: Exception, status_code: int = 500) -> HTTPException:
     """
@@ -23,4 +27,9 @@ def http_exception(ex: Exception, status_code: int = 500) -> HTTPException:
 
 class UploadFileSizeError(Exception):
     """Ошибка превышения опустимого размера загружаемого файла."""
+    pass
+
+
+class ForbiddenError(Exception):
+    """Ошибка, возникающая при недостатке прав доступа к чему-либо."""
     pass

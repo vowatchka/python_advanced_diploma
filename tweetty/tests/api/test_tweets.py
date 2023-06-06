@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...api import models as api_models
 from ...db import models as db_models
+from . import assert_http_error
 
 
 @pytest.fixture
@@ -247,3 +248,24 @@ async def test_delete_tweet_idempotency(client: AsyncClient, test_user: db_model
     )
     # метод DELETE должен быть идемпотентным
     assert response.status_code == 200
+
+
+@pytest.mark.anyio
+async def test_delete_someone_else_tweet(client: AsyncClient, test_user: db_models.User, test_tweet: db_models.Tweet,
+                                         db_session: AsyncSession):
+    """Проверка запрета на удаление чужого твита."""
+    # создаем юзера, который будет удалять твит
+    hacker = db_models.User(
+        nickname="hacker",
+        api_key="h" * 30
+    )
+    db_session.add(hacker)
+    await db_session.commit()
+
+    response = await client.delete(
+        f"/api/tweets/{test_tweet.id}",
+        headers={"api-key": hacker.api_key},
+    )
+    assert response.status_code == 403
+
+    assert_http_error(response.json())

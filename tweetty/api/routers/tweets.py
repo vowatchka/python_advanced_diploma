@@ -9,7 +9,8 @@ from sqlalchemy.orm import selectinload
 
 from ...db import models
 from ..auth import get_authorized_user
-from ..models import NewTweetIn, NewTweetOut, ResultModel
+from ..exceptions import HTTP_403_FORBIDDEN_DESC, HTTP_500_INTERNAL_SERVER_ERROR_DESC, ForbiddenError, http_exception
+from ..models import HTTPErrorModel, NewTweetIn, NewTweetOut, ResultModel
 
 tweets_router = APIRouter(prefix="/tweets")
 _tags = ["tweets"]
@@ -51,12 +52,16 @@ async def publish_new_tweet(
     summary="Удалить твит",
     status_code=200,
     response_model=ResultModel,
+    responses={
+        403: {"model": HTTPErrorModel, "description": HTTP_403_FORBIDDEN_DESC},
+        500: {"model": HTTPErrorModel, "description": HTTP_500_INTERNAL_SERVER_ERROR_DESC},
+    },
     tags=_tags,
 )
 async def delete_tweet(
     db_session: Annotated[AsyncSession, Depends(models.db_session)],
     auth_user: Annotated[models.User, Depends(get_authorized_user)],
-    tweet_id: Annotated[int, Path(title="Id твита")],
+    tweet_id: Annotated[int, Path(description="Id твита")],
 ) -> ResultModel:
     """Удаление твита."""
     async with db_session.begin_nested():
@@ -67,8 +72,16 @@ async def delete_tweet(
         )
         tweet: models.Tweet = tweet_qs.scalar_one_or_none()
 
+        # пытаемся удалить твит, если он существует
         if tweet is not None:
-            # получаем пути до медиа
+            # запрет на удаление чужого твита
+            if tweet.user_id != auth_user.id:
+                raise http_exception(
+                    ForbiddenError(f"User {auth_user.nickname} can't delete someone else tweet"),
+                    status_code=403,
+                )
+
+            # получаем пути до медиа, прикрепленных к удаляемому твиту
             media_file_paths = [OsPath(media.rel_uri).resolve() for media in tweet.medias]
             # удаляем твит
             await db_session.delete(tweet)
@@ -78,4 +91,6 @@ async def delete_tweet(
                 if file_path.exists():
                     os.remove(file_path)
 
+        # если твит отсутствует, то все равно возвращает `True`,
+        # чтобы соблюсти идемпотентность метода DELETE
         return ResultModel(result=True)
