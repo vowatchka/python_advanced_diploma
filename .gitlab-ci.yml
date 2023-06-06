@@ -36,6 +36,9 @@ linting:
     - main
     - master
     - merge_requests
+  except:
+    variables:
+      - $CI_COMMIT_MESSAGE =~ /\d+\.\d+\.\d+/
 
 testing:
   stage: test
@@ -47,6 +50,9 @@ testing:
     - main
     - master
     - merge_requests
+  except:
+    variables:
+      - $CI_COMMIT_MESSAGE =~ /\d+\.\d+\.\d+/
 
 release:
   stage: release
