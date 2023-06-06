@@ -60,6 +60,8 @@ release:
     - git config --local user.name "semantic-release"
     - git config --local user.email "semantic-release"
     - git switch $CI_COMMIT_BRANCH
+    # remove unused tags
+    - git tag -d $(git tag -l)
     - git pull
     # install python-semantic-release
     - python -m pip install --upgrade pip setuptools wheel
@@ -70,5 +72,5 @@ release:
     - main
     - master
   except:
-    - tags
-    - /^\d+\.\d+\.\d+/
+    variables:
+      - $CI_COMMIT_MESSAGE =~ /\d+\.\d+\.\d+/
