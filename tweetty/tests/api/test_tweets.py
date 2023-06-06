@@ -1,3 +1,8 @@
+import os
+from pathlib import PosixPath, WindowsPath
+from typing import BinaryIO, Union
+
+import aiofiles
 import pytest
 from httpx import AsyncClient
 from sqlalchemy import select
@@ -172,3 +177,50 @@ async def test_delete_tweet_auth(client: AsyncClient, api_key: str):
         headers={"api-key": api_key},
     )
     assert response.status_code == 401
+
+
+@pytest.mark.anyio
+@pytest.mark.usefixtures("test_file", "test_file_uploaded_path")
+async def test_delete_tweet(client: AsyncClient, test_user: db_models.User, db_session: AsyncSession,
+                            test_file: tuple[str, BinaryIO], test_file_uploaded_path: Union[PosixPath, WindowsPath]):
+    """Проверка удаления существующего твита."""
+    # создаем твит
+    new_tweet = db_models.Tweet(
+        content="test",
+        user_id=test_user.id
+    )
+    db_session.add(new_tweet)
+    await db_session.commit()
+
+    # создаем медиа к твиту
+    os.makedirs(test_file_uploaded_path.resolve().parent, exist_ok=True)
+    async with aiofiles.open(test_file_uploaded_path, "wb") as f:
+        await f.write(test_file[1].read())
+
+    new_media = db_models.TweetMedia(
+        rel_uri=str(test_file_uploaded_path),
+        tweet_id=new_tweet.id
+    )
+    db_session.add(new_media)
+    await db_session.commit()
+
+    response = await client.delete(
+        f"/api/tweets/{new_tweet.id}",
+        headers={"api-key": test_user.api_key},
+    )
+    assert response.status_code == 200
+
+    resp = response.json()
+    assert resp["result"] is True
+
+    # проверяем, что твита нет
+    tweet_qs = await db_session.execute(
+        select(db_models.Tweet).where(db_models.Tweet.id == new_tweet.id)
+    )
+    assert tweet_qs.scalar_one_or_none() is None
+    # поверяем, что медиа тоже удалено
+    media_qs = await db_session.execute(
+        select(db_models.TweetMedia).where(db_models.TweetMedia.tweet_id == new_tweet.id)
+    )
+    assert len(media_qs.scalars().all()) == 0
+    assert not test_file_uploaded_path.exists()

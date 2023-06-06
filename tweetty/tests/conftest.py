@@ -8,7 +8,7 @@ from sqlalchemy.orm import sessionmaker
 from ..api import create_api
 from ..api.routers import medias as media_routers
 from ..db import models, pg
-from .api.test_medias import generate_mediafile_name
+from .api.test_medias import generate_mediafile_name, test_file, test_file_uploaded_path  # noqa: F401
 
 TestSession = sessionmaker(expire_on_commit=False, class_=AsyncSession)
 
