@@ -66,6 +66,10 @@ make migrate
 
 ## Тестирование
 ```shell
+make lint
+```
+
+```shell
 make test
 ```
 
@@ -76,6 +80,7 @@ make test
 Структура спроектирована в [dbdiagram.io](https://dbdiagram.io/d/644b964bdca9fb07c433064b).
 
 ## Полезные материалы
+* [Коды статусов HTTP](https://ru.wikipedia.org/wiki/%D0%A1%D0%BF%D0%B8%D1%81%D0%BE%D0%BA_%D0%BA%D0%BE%D0%B4%D0%BE%D0%B2_%D1%81%D0%BE%D1%81%D1%82%D0%BE%D1%8F%D0%BD%D0%B8%D1%8F_HTTP)
 * [pyproject.toml](https://python-poetry.org/docs/pyproject/)
 * [CI: Python Semantic Release](https://python-semantic-release.readthedocs.io/en/latest/)
 * [CI: Python Semantic Release example](https://guicommits.com/semantic-release-to-automate-versioning-and-publishing-to-pypi-with-github-actions/)
@@ -85,3 +90,8 @@ make test
 * [FastAPI: Переопределение имен полей в респонсе](https://stackoverflow.com/a/60211253)
 * [FastAPI: Авторизация с APIKey, пример 1](https://itsjoshcampos.codes/fast-api-api-key-authorization)
 * [FastAPI: Авторизация с APIKey, пример 2](https://nilsdebruin.medium.com/fastapi-authentication-revisited-enabling-api-key-authentication-122dc5975680)
+* [FastAPI: Передача файлов в запросе](https://fastapi.tiangolo.com/tutorial/request-files/)
+* [FastAPI: Как ограничить размер загружаемого файла](https://stackoverflow.com/questions/72338900/how-to-limit-python-fastapi-post-request-upload-file-size)
+* [FastAPI: Параметризация зависимостей](https://fastapi.tiangolo.com/advanced/advanced-dependencies/)
+* [FastAPI: Обработка ошибок](https://fastapi.tiangolo.com/tutorial/handling-errors/)
+* [HTTPX: Передача файлов в запросе AsyncClient](https://stackoverflow.com/a/72104365)

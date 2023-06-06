@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 
+from .exception_handlers import common_exception_handler
 from .routers import api_router
 
 
@@ -15,6 +16,9 @@ def create_api() -> FastAPI:
         },
         license_info={
             "name": "MIT"
+        },
+        exception_handlers={
+            Exception: common_exception_handler,
         },
     )
 

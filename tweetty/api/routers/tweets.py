@@ -1,6 +1,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
+from sqlalchemy import update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...db import models
@@ -23,11 +24,19 @@ async def publish_new_tweet(
     new_tweet_body: NewTweetIn,
 ) -> NewTweetOut:
     """Публикация нового твита."""
-    new_tweet = models.Tweet(
-        **new_tweet_body.dict(),
-        user_id=auth_user.id,
-    )
-    db_session.add(new_tweet)
-    await db_session.commit()
+    async with db_session.begin_nested():
+        new_tweet = models.Tweet(
+            **new_tweet_body.dict(),
+            user_id=auth_user.id,
+        )
+        db_session.add(new_tweet)
+        await db_session.flush([new_tweet])
+
+        # связываем переданные медиа с твитом
+        await db_session.execute(
+            update(models.TweetMedia)
+            .where(models.TweetMedia.id.in_(new_tweet_body.medias))
+            .values(tweet_id=new_tweet.id)
+        )
 
     return NewTweetOut(result=True, tweet_id=new_tweet.id)
