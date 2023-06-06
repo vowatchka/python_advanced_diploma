@@ -67,14 +67,15 @@ async def delete_tweet(
         )
         tweet: models.Tweet = tweet_qs.scalar_one_or_none()
 
-        # получаем пути до медиа
-        media_file_paths = [OsPath(media.rel_uri).resolve() for media in tweet.medias]
-        # удаляем твит
-        await db_session.delete(tweet)
+        if tweet is not None:
+            # получаем пути до медиа
+            media_file_paths = [OsPath(media.rel_uri).resolve() for media in tweet.medias]
+            # удаляем твит
+            await db_session.delete(tweet)
 
-        # удаляем медиа
-        for file_path in media_file_paths:
-            if file_path.exists():
-                os.remove(file_path)
+            # удаляем медиа
+            for file_path in media_file_paths:
+                if file_path.exists():
+                    os.remove(file_path)
 
         return ResultModel(result=True)

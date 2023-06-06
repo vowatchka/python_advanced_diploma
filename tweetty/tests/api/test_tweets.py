@@ -12,6 +12,18 @@ from ...api import models as api_models
 from ...db import models as db_models
 
 
+@pytest.fixture
+async def test_tweet(db_session: AsyncSession, test_user: db_models.User):
+    tweet = db_models.Tweet(
+        content="test",
+        user_id=test_user.id
+    )
+    db_session.add(tweet)
+    await db_session.commit()
+
+    yield tweet
+
+
 @pytest.mark.anyio
 @pytest.mark.parametrize(
     "tweet_data",
@@ -181,17 +193,10 @@ async def test_delete_tweet_auth(client: AsyncClient, api_key: str):
 
 @pytest.mark.anyio
 @pytest.mark.usefixtures("test_file", "test_file_uploaded_path")
-async def test_delete_tweet(client: AsyncClient, test_user: db_models.User, db_session: AsyncSession,
-                            test_file: tuple[str, BinaryIO], test_file_uploaded_path: Union[PosixPath, WindowsPath]):
+async def test_delete_tweet(client: AsyncClient, test_user: db_models.User, test_tweet: db_models.Tweet,
+                            db_session: AsyncSession, test_file: tuple[str, BinaryIO],
+                            test_file_uploaded_path: Union[PosixPath, WindowsPath]):
     """Проверка удаления существующего твита."""
-    # создаем твит
-    new_tweet = db_models.Tweet(
-        content="test",
-        user_id=test_user.id
-    )
-    db_session.add(new_tweet)
-    await db_session.commit()
-
     # создаем медиа к твиту
     os.makedirs(test_file_uploaded_path.resolve().parent, exist_ok=True)
     async with aiofiles.open(test_file_uploaded_path, "wb") as f:
@@ -199,13 +204,13 @@ async def test_delete_tweet(client: AsyncClient, test_user: db_models.User, db_s
 
     new_media = db_models.TweetMedia(
         rel_uri=str(test_file_uploaded_path),
-        tweet_id=new_tweet.id
+        tweet_id=test_tweet.id
     )
     db_session.add(new_media)
     await db_session.commit()
 
     response = await client.delete(
-        f"/api/tweets/{new_tweet.id}",
+        f"/api/tweets/{test_tweet.id}",
         headers={"api-key": test_user.api_key},
     )
     assert response.status_code == 200
@@ -215,12 +220,30 @@ async def test_delete_tweet(client: AsyncClient, test_user: db_models.User, db_s
 
     # проверяем, что твита нет
     tweet_qs = await db_session.execute(
-        select(db_models.Tweet).where(db_models.Tweet.id == new_tweet.id)
+        select(db_models.Tweet).where(db_models.Tweet.id == test_tweet.id)
     )
     assert tweet_qs.scalar_one_or_none() is None
     # поверяем, что медиа тоже удалено
     media_qs = await db_session.execute(
-        select(db_models.TweetMedia).where(db_models.TweetMedia.tweet_id == new_tweet.id)
+        select(db_models.TweetMedia).where(db_models.TweetMedia.tweet_id == test_tweet.id)
     )
     assert len(media_qs.scalars().all()) == 0
     assert not test_file_uploaded_path.exists()
+
+
+@pytest.mark.anyio
+async def test_delete_tweet_idempotency(client: AsyncClient, test_user: db_models.User, test_tweet: db_models.Tweet):
+    """Проверка идемпотентности удаления твита."""
+    response = await client.delete(
+        f"/api/tweets/{test_tweet.id}",
+        headers={"api-key": test_user.api_key},
+    )
+    assert response.status_code == 200
+
+    # повторно удаляем удаленный твит
+    response = await client.delete(
+        f"/api/tweets/{test_tweet.id}",
+        headers={"api-key": test_user.api_key},
+    )
+    # метод DELETE должен быть идемпотентным
+    assert response.status_code == 200
