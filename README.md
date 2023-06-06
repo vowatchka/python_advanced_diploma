@@ -35,7 +35,7 @@
    ```shell
    # On Linux
    make vm-up-provision
-   
+
    # On Windows
    vagrant up --provision
    ```
@@ -44,26 +44,26 @@
    ```shell
    # On Linux
    make vm-connect
-   
+
    # On Windows
    vagrant ssh
    ```
-   
+
 3. В терминале ВМ перейти в директорию с проектом
    ```shell
    cd /vagrant
    ```
-   
+
 3. Поднять контейнеры для разработки
    ```shell
    make up
    ```
-   
+
 ## Миграции
 ```shell
 make migrate
 ```
-   
+
 ## Тестирование
 ```shell
 make lint
@@ -81,6 +81,9 @@ make test
 
 ## Полезные материалы
 * [Коды статусов HTTP](https://ru.wikipedia.org/wiki/%D0%A1%D0%BF%D0%B8%D1%81%D0%BE%D0%BA_%D0%BA%D0%BE%D0%B4%D0%BE%D0%B2_%D1%81%D0%BE%D1%81%D1%82%D0%BE%D1%8F%D0%BD%D0%B8%D1%8F_HTTP)
+* [pyproject.toml](https://python-poetry.org/docs/pyproject/)
+* [CI: Python Semantic Release](https://python-semantic-release.readthedocs.io/en/latest/)
+* [CI: Python Semantic Release example](https://guicommits.com/semantic-release-to-automate-versioning-and-publishing-to-pypi-with-github-actions/)
 * [SQLAlchemy: relationship для асинхронного подключения, способ 1](https://stackoverflow.com/a/70105356)
 * [SQLAlchemy: relationship для асинхронного подключения, способ 2](https://stackoverflow.com/a/75947988)
 * [SQLAlchemy: множественные ForeignKey на одно и то же поле](https://stackoverflow.com/a/22357235)

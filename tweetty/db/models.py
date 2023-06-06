@@ -1,19 +1,19 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Optional
+from typing import Any, Optional
 
-from sqlalchemy import Column, Integer, String, CheckConstraint, DateTime, ForeignKey, func, UniqueConstraint
-from sqlalchemy.ext.associationproxy import association_proxy, AssociationProxy
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy.orm import sessionmaker, declarative_base, relationship, Mapped
+from sqlalchemy import CheckConstraint, Column, DateTime, ForeignKey, Integer, String, UniqueConstraint, func
+from sqlalchemy.ext.associationproxy import AssociationProxy, association_proxy
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import Mapped, declarative_base, relationship, sessionmaker
 
 from .pg import POSTGRES_URL, make_async_postgres_url
 
 engine = create_async_engine(make_async_postgres_url(POSTGRES_URL))
 Session = sessionmaker(expire_on_commit=False, class_=AsyncSession)
 
-Base: type = declarative_base()
+Base: Any = declarative_base()
 
 
 async def db_session():

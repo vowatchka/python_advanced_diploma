@@ -1,4 +1,4 @@
-from ...db.pg import make_async_postgres_url, change_database_name
+from ...db.pg import change_database_name, make_async_postgres_url
 
 
 def test_make_async_postgres_url():

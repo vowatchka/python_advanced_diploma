@@ -46,7 +46,11 @@ test: # run tests. Use ARGS for additional arguments
 
 .PHONY: lint
 lint: # run linting
-	docker-compose exec api flake8 --verbose --color always ./tweetty
+	docker-compose exec api /bin/bash -c "./lint.sh ./tweetty"
+
+.PHONE: isort
+isort: # run python isort module
+	docker-compose exec api isort --color ./tweetty
 
 .PHONY: migrate
 migrate: # apply migrations
@@ -55,4 +59,3 @@ migrate: # apply migrations
 .PHONY: app-logs
 app-logs: # show application logs. Use ARGS for additional arguments
 	docker-compose logs api $(ARGS)
-

@@ -25,11 +25,13 @@ before_script:
 stages:
   - lint
   - test
+  - release
 
 linting:
   stage: lint
   script:
-    - flake8 -v --color always $WORK_DIR
+    - chmod +x ./lint.sh
+    - ./lint.sh $WORK_DIR
   only:
     - main
     - master
@@ -45,3 +47,30 @@ testing:
     - main
     - master
     - merge_requests
+
+release:
+  stage: release
+  before_script:
+    # degug
+    - echo $GITLAB_CI
+    # install git
+    - apt-get update -y
+    - apt-get install -y git
+    # setup git
+    - git config --local user.name "semantic-release"
+    - git config --local user.email "semantic-release"
+    - git switch $CI_COMMIT_BRANCH
+    # remove unused tags
+    - git tag -d $(git tag -l)
+    - git pull
+    # install python-semantic-release
+    - python -m pip install --upgrade pip setuptools wheel
+    - python -m pip install python-semantic-release~=7.34
+  script:
+    - semantic-release publish -v INFO
+  only:
+    - main
+    - master
+  except:
+    variables:
+      - $CI_COMMIT_MESSAGE =~ /\d+\.\d+\.\d+/

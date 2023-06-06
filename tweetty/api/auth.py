@@ -1,13 +1,12 @@
 from typing import Annotated
 
-from fastapi import Security, Depends, HTTPException
+from fastapi import Depends, HTTPException, Security
 from fastapi.openapi.models import APIKey
 from fastapi.security import APIKeyHeader
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..db import models
-
 
 api_key_header = APIKeyHeader(
     name="api-key",
