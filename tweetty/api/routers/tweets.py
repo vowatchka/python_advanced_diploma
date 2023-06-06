@@ -1,8 +1,11 @@
+import os
+from pathlib import Path as OsPath
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Path
-from sqlalchemy import update
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from ...db import models
 from ..auth import get_authorized_user
@@ -56,4 +59,22 @@ async def delete_tweet(
     tweet_id: Annotated[int, Path(title="Id твита")],
 ) -> ResultModel:
     """Удаление твита."""
-    return ResultModel(result=True)
+    async with db_session.begin_nested():
+        tweet_qs = await db_session.execute(
+            select(models.Tweet)
+            .where(models.Tweet.id == tweet_id)
+            .options(selectinload(models.Tweet.medias))
+        )
+        tweet: models.Tweet = tweet_qs.scalar_one_or_none()
+
+        # получаем пути до медиа
+        media_file_paths = [OsPath(media.rel_uri).resolve() for media in tweet.medias]
+        # удаляем твит
+        await db_session.delete(tweet)
+
+        # удаляем медиа
+        for file_path in media_file_paths:
+            if file_path.exists():
+                os.remove(file_path)
+
+        return ResultModel(result=True)
