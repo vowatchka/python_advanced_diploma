@@ -96,3 +96,4 @@ make test
 * [FastAPI: Параметризация зависимостей](https://fastapi.tiangolo.com/advanced/advanced-dependencies/)
 * [FastAPI: Обработка ошибок](https://fastapi.tiangolo.com/tutorial/handling-errors/)
 * [HTTPX: Передача файлов в запросе AsyncClient](https://stackoverflow.com/a/72104365)
+* [Pytest: Использование фикстур из различных модулей](https://gist.github.com/peterhurford/09f7dcda0ab04b95c026c60fa49c2a68)

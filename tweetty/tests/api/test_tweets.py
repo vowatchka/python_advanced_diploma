@@ -1,3 +1,8 @@
+import os
+from pathlib import PosixPath, WindowsPath
+from typing import BinaryIO, Union
+
+import aiofiles
 import pytest
 from httpx import AsyncClient
 from sqlalchemy import select
@@ -5,6 +10,19 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...api import models as api_models
 from ...db import models as db_models
+from . import assert_http_error
+
+
+@pytest.fixture
+async def test_tweet(db_session: AsyncSession, test_user: db_models.User):
+    tweet = db_models.Tweet(
+        content="test",
+        user_id=test_user.id
+    )
+    db_session.add(tweet)
+    await db_session.commit()
+
+    yield tweet
 
 
 @pytest.mark.anyio
@@ -155,3 +173,99 @@ async def test_publish_new_tweet_media_items(client: AsyncClient, test_user: db_
         headers={"api-key": test_user.api_key},
     )
     assert response.status_code == 422
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    "api_key",
+    [
+        "",
+        "no" * 15,
+    ]
+)
+async def test_delete_tweet_auth(client: AsyncClient, api_key: str):
+    """Проверка авторизации для удаления твита."""
+    response = await client.delete(
+        "/api/tweets/1",
+        headers={"api-key": api_key},
+    )
+    assert response.status_code == 401
+
+
+@pytest.mark.anyio
+@pytest.mark.usefixtures("test_file", "test_file_uploaded_path")
+async def test_delete_tweet(client: AsyncClient, test_user: db_models.User, test_tweet: db_models.Tweet,
+                            db_session: AsyncSession, test_file: tuple[str, BinaryIO],
+                            test_file_uploaded_path: Union[PosixPath, WindowsPath]):
+    """Проверка удаления существующего твита."""
+    # создаем медиа к твиту
+    os.makedirs(test_file_uploaded_path.resolve().parent, exist_ok=True)
+    async with aiofiles.open(test_file_uploaded_path, "wb") as f:
+        await f.write(test_file[1].read())
+
+    new_media = db_models.TweetMedia(
+        rel_uri=str(test_file_uploaded_path),
+        tweet_id=test_tweet.id
+    )
+    db_session.add(new_media)
+    await db_session.commit()
+
+    response = await client.delete(
+        f"/api/tweets/{test_tweet.id}",
+        headers={"api-key": test_user.api_key},
+    )
+    assert response.status_code == 200
+
+    resp = response.json()
+    assert resp["result"] is True
+
+    # проверяем, что твита нет
+    tweet_qs = await db_session.execute(
+        select(db_models.Tweet).where(db_models.Tweet.id == test_tweet.id)
+    )
+    assert tweet_qs.scalar_one_or_none() is None
+    # поверяем, что медиа тоже удалено
+    media_qs = await db_session.execute(
+        select(db_models.TweetMedia).where(db_models.TweetMedia.tweet_id == test_tweet.id)
+    )
+    assert len(media_qs.scalars().all()) == 0
+    assert not test_file_uploaded_path.exists()
+
+
+@pytest.mark.anyio
+async def test_delete_tweet_idempotency(client: AsyncClient, test_user: db_models.User, test_tweet: db_models.Tweet):
+    """Проверка идемпотентности удаления твита."""
+    response = await client.delete(
+        f"/api/tweets/{test_tweet.id}",
+        headers={"api-key": test_user.api_key},
+    )
+    assert response.status_code == 200
+
+    # повторно удаляем удаленный твит
+    response = await client.delete(
+        f"/api/tweets/{test_tweet.id}",
+        headers={"api-key": test_user.api_key},
+    )
+    # метод DELETE должен быть идемпотентным
+    assert response.status_code == 200
+
+
+@pytest.mark.anyio
+async def test_delete_someone_else_tweet(client: AsyncClient, test_user: db_models.User, test_tweet: db_models.Tweet,
+                                         db_session: AsyncSession):
+    """Проверка запрета на удаление чужого твита."""
+    # создаем юзера, который будет удалять твит
+    hacker = db_models.User(
+        nickname="hacker",
+        api_key="h" * 30
+    )
+    db_session.add(hacker)
+    await db_session.commit()
+
+    response = await client.delete(
+        f"/api/tweets/{test_tweet.id}",
+        headers={"api-key": hacker.api_key},
+    )
+    assert response.status_code == 403
+
+    assert_http_error(response.json())
