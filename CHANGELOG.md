@@ -2,6 +2,17 @@
 
 <!--next-version-placeholder-->
 
+## v0.4.0 (2023-06-06)
+
+### Feature
+
+* #7: add delete tweet logic ([`e4a148f`](https://gitlab.skillbox.ru/vladimir_saltykov/python_advanced_diploma/-/commit/e4a148fc4eed4fa57cc89a7bf70286e6a577eda2))
+* #7: add route for delete tweet ([`915698e`](https://gitlab.skillbox.ru/vladimir_saltykov/python_advanced_diploma/-/commit/915698e5697f7a78965fdad850de85bcb783f82d))
+
+### Documentation
+
+* #7: update README.md ([`c3da2ae`](https://gitlab.skillbox.ru/vladimir_saltykov/python_advanced_diploma/-/commit/c3da2aed94480321246262f31c13a47192c69d83))
+
 ## v0.3.0 (2023-06-06)
 
 ### Feature
