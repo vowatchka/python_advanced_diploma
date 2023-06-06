@@ -2,6 +2,16 @@
 
 <!--next-version-placeholder-->
 
+## v0.3.0 (2023-06-06)
+
+### Feature
+
+* Force increase release version ([`61a7938`](https://gitlab.skillbox.ru/vladimir_saltykov/python_advanced_diploma/-/commit/61a7938c6e7ce29618bd1ccf7cba4389484d56fa))
+
+### Documentation
+
+* Add link to angular commit message styleguide ([`6cd4ed6`](https://gitlab.skillbox.ru/vladimir_saltykov/python_advanced_diploma/-/commit/6cd4ed69591b7503939aacea068d0204ccc6f22f))
+
 ## v0.2.0 (2023-06-05)
 
 ### Feature

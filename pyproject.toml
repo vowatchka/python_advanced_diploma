@@ -1,6 +1,6 @@
 [tool.poetry]
 name="tweetty"
-version="0.2.0"
+version="0.3.0"
 
 [tool.mypy]
 ignore_missing_imports=true
