@@ -1,14 +1,15 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Path
 from sqlalchemy import update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...db import models
 from ..auth import get_authorized_user
-from ..models import NewTweetIn, NewTweetOut
+from ..models import NewTweetIn, NewTweetOut, ResultModel
 
 tweets_router = APIRouter(prefix="/tweets")
+_tags = ["tweets"]
 
 
 @tweets_router.post(
@@ -16,7 +17,7 @@ tweets_router = APIRouter(prefix="/tweets")
     summary="Опубликовать новый твит",
     response_model=NewTweetOut,
     status_code=201,
-    tags=["tweets"]
+    tags=_tags,
 )
 async def publish_new_tweet(
     db_session: Annotated[AsyncSession, Depends(models.db_session)],
@@ -40,3 +41,19 @@ async def publish_new_tweet(
         )
 
     return NewTweetOut(result=True, tweet_id=new_tweet.id)
+
+
+@tweets_router.delete(
+    "/{tweet_id}",
+    summary="Удалить твит",
+    status_code=200,
+    response_model=ResultModel,
+    tags=_tags,
+)
+async def delete_tweet(
+    db_session: Annotated[AsyncSession, Depends(models.db_session)],
+    auth_user: Annotated[models.User, Depends(get_authorized_user)],
+    tweet_id: Annotated[int, Path(title="Id твита")],
+) -> ResultModel:
+    """Удаление твита."""
+    return ResultModel(result=True)
