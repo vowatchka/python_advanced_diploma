@@ -155,3 +155,20 @@ async def test_publish_new_tweet_media_items(client: AsyncClient, test_user: db_
         headers={"api-key": test_user.api_key},
     )
     assert response.status_code == 422
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    "api_key",
+    [
+        "",
+        "no" * 15,
+    ]
+)
+async def test_delete_tweet_auth(client: AsyncClient, api_key: str):
+    """Проверка авторизации для удаления твита."""
+    response = await client.delete(
+        "/api/tweets/1",
+        headers={"api-key": api_key},
+    )
+    assert response.status_code == 401
