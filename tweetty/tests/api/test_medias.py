@@ -115,7 +115,7 @@ async def test_rollback_uploaded_file(client: AsyncClient, test_user: db_models.
         files={"media": test_file},
         headers={"api-key": test_user.api_key},
     )
-    assert response.status_code == 520
+    assert response.status_code == 500
 
     assert_http_error(response.json())
 

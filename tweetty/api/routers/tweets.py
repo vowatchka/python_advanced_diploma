@@ -19,8 +19,11 @@ _tags = ["tweets"]
 @tweets_router.post(
     "",
     summary="Опубликовать новый твит",
-    response_model=NewTweetOut,
     status_code=201,
+    response_model=NewTweetOut,
+    responses={
+        500: {"model": HTTPErrorModel, "description": HTTP_500_INTERNAL_SERVER_ERROR_DESC},
+    },
     tags=_tags,
 )
 async def publish_new_tweet(
