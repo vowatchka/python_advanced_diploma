@@ -84,6 +84,7 @@ make test
 * [pyproject.toml](https://python-poetry.org/docs/pyproject/)
 * [CI: Python Semantic Release](https://python-semantic-release.readthedocs.io/en/latest/)
 * [CI: Python Semantic Release example](https://guicommits.com/semantic-release-to-automate-versioning-and-publishing-to-pypi-with-github-actions/)
+* [Angular commit message styleguide](https://github.com/angular/angular.js/blob/master/DEVELOPERS.md#commits)
 * [SQLAlchemy: relationship для асинхронного подключения, способ 1](https://stackoverflow.com/a/70105356)
 * [SQLAlchemy: relationship для асинхронного подключения, способ 2](https://stackoverflow.com/a/75947988)
 * [SQLAlchemy: множественные ForeignKey на одно и то же поле](https://stackoverflow.com/a/22357235)
