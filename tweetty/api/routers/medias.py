@@ -1,17 +1,16 @@
 import os
 import uuid
+from pathlib import Path as OsPath
+from typing import Annotated, BinaryIO, Union
 
 import aiofiles
-from pathlib import Path as OsPath
-from typing import Annotated, Union, BinaryIO
-
 from fastapi import APIRouter, Depends, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...db import models
 from ..auth import get_authorized_user
-from ..exceptions import http_exception, UploadFileSizeError
-from ..models import NewMediaIn, NewMediaOut, HTTPErrorModel
+from ..exceptions import UploadFileSizeError, http_exception
+from ..models import HTTPErrorModel, NewMediaIn, NewMediaOut
 
 medias_router = APIRouter(prefix="/medias")
 

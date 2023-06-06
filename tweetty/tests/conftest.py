@@ -6,9 +6,8 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
 from ..api import create_api
-from ..db import models, pg
 from ..api.routers import medias as media_routers
-
+from ..db import models, pg
 from .api.test_medias import generate_mediafile_name
 
 TestSession = sessionmaker(expire_on_commit=False, class_=AsyncSession)

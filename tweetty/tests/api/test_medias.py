@@ -1,20 +1,20 @@
 import shutil
-from typing import Union, BinaryIO
-
-from fastapi import UploadFile, FastAPI
-from pathlib import Path as OsPath, PosixPath, WindowsPath
+from pathlib import Path as OsPath
+from pathlib import PosixPath, WindowsPath
+from typing import BinaryIO, Union
 
 import pytest
+from fastapi import FastAPI, UploadFile
 from httpx import AsyncClient
 from pytest_mock import MockerFixture
 from sqlalchemy import select
 from sqlalchemy.exc import DatabaseError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from . import assert_http_error
 from ...api import models as api_models
 from ...api.routers import medias as media_routers
 from ...db import models as db_models
+from . import assert_http_error
 
 
 class MockMediaConfig:
