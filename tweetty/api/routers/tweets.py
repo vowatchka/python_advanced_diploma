@@ -67,33 +67,32 @@ async def delete_tweet(
     tweet_id: Annotated[int, Path(description="Id твита")],
 ) -> ResultModel:
     """Удаление твита."""
-    async with db_session.begin_nested():
-        tweet_qs = await db_session.execute(
-            select(models.Tweet)
-            .where(models.Tweet.id == tweet_id)
-            .options(selectinload(models.Tweet.medias))
-        )
-        tweet: models.Tweet = tweet_qs.scalar_one_or_none()
+    tweet_qs = await db_session.execute(
+        select(models.Tweet)
+        .where(models.Tweet.id == tweet_id)
+        .options(selectinload(models.Tweet.medias))
+    )
+    tweet: models.Tweet = tweet_qs.scalar_one_or_none()
 
-        # пытаемся удалить твит, если он существует
-        if tweet is not None:
-            # запрет на удаление чужого твита
-            if tweet.user_id != auth_user.id:
-                raise http_exception(
-                    ForbiddenError(f"User {auth_user.nickname} can't delete someone else tweet"),
-                    status_code=403,
-                )
+    # пытаемся удалить твит, если он существует
+    if tweet is not None:
+        # запрет на удаление чужого твита
+        if tweet.user_id != auth_user.id:
+            raise http_exception(
+                ForbiddenError(f"User {auth_user.nickname} can't delete someone else tweet"),
+                status_code=403,
+            )
 
-            # получаем пути до медиа, прикрепленных к удаляемому твиту
-            media_file_paths = [OsPath(media.rel_uri).resolve() for media in tweet.medias]
-            # удаляем твит
-            await db_session.delete(tweet)
+        # получаем пути до медиа, прикрепленных к удаляемому твиту
+        media_file_paths = [OsPath(media.rel_uri).resolve() for media in tweet.medias]
+        # удаляем твит
+        await db_session.delete(tweet)
 
-            # удаляем медиа
-            for file_path in media_file_paths:
-                if file_path.exists():
-                    os.remove(file_path)
+        # удаляем медиа
+        for file_path in media_file_paths:
+            if file_path.exists():
+                os.remove(file_path)
 
-        # если твит отсутствует, то все равно возвращает `True`,
-        # чтобы соблюсти идемпотентность метода DELETE
-        return ResultModel(result=True)
+    # если твит отсутствует, то все равно возвращает `True`,
+    # чтобы соблюсти идемпотентность метода DELETE
+    return ResultModel(result=True)
