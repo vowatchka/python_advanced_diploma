@@ -2,18 +2,25 @@ import os
 from pathlib import Path as OsPath
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Path
-from sqlalchemy import select, update
+from fastapi import APIRouter, Depends, Path, Response
+from sqlalchemy import and_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from ...db import models
 from ..auth import get_authorized_user
-from ..exceptions import HTTP_403_FORBIDDEN_DESC, HTTP_500_INTERNAL_SERVER_ERROR_DESC, ForbiddenError, http_exception
+from ..exceptions import (HTTP_403_FORBIDDEN_DESC, HTTP_500_INTERNAL_SERVER_ERROR_DESC, ForbiddenError, TweetNotFound,
+                          http_exception,)
 from ..models import HTTPErrorModel, NewTweetIn, NewTweetOut, ResultModel
 
-tweets_router = APIRouter(prefix="/tweets")
-_tags = ["tweets"]
+tweets_router = APIRouter(
+    prefix="/tweets",
+    responses={
+        500: {"model": HTTPErrorModel, "description": HTTP_500_INTERNAL_SERVER_ERROR_DESC},
+    },
+)
+tweets_tags = ["tweets"]
+likes_tags = tweets_tags + ["likes"]
 
 
 @tweets_router.post(
@@ -21,10 +28,7 @@ _tags = ["tweets"]
     summary="Опубликовать новый твит",
     status_code=201,
     response_model=NewTweetOut,
-    responses={
-        500: {"model": HTTPErrorModel, "description": HTTP_500_INTERNAL_SERVER_ERROR_DESC},
-    },
-    tags=_tags,
+    tags=tweets_tags,
 )
 async def publish_new_tweet(
     db_session: Annotated[AsyncSession, Depends(models.db_session)],
@@ -57,9 +61,8 @@ async def publish_new_tweet(
     response_model=ResultModel,
     responses={
         403: {"model": HTTPErrorModel, "description": HTTP_403_FORBIDDEN_DESC},
-        500: {"model": HTTPErrorModel, "description": HTTP_500_INTERNAL_SERVER_ERROR_DESC},
     },
-    tags=_tags,
+    tags=tweets_tags,
 )
 async def delete_tweet(
     db_session: Annotated[AsyncSession, Depends(models.db_session)],
@@ -79,7 +82,7 @@ async def delete_tweet(
         # запрет на удаление чужого твита
         if tweet.user_id != auth_user.id:
             raise http_exception(
-                ForbiddenError(f"User {auth_user.nickname} can't delete someone else tweet"),
+                ForbiddenError(f"user {auth_user.nickname} can't delete someone else tweet"),
                 status_code=403,
             )
 
@@ -95,4 +98,56 @@ async def delete_tweet(
 
     # если твит отсутствует, то все равно возвращает `True`,
     # чтобы соблюсти идемпотентность метода DELETE
+    return ResultModel(result=True)
+
+
+@tweets_router.post(
+    "/{tweet_id}/likes",
+    summary="Поставить лайк",
+    status_code=201,
+    response_model=ResultModel,
+    responses={
+        200: {"model": ResultModel, "description": "Already Liked"},
+        404: {"model": HTTPErrorModel, "description": "Tweet Not Found"},
+    },
+    tags=likes_tags,
+)
+async def like_tweet(
+    db_session: Annotated[AsyncSession, Depends(models.db_session)],
+    auth_user: Annotated[models.User, Depends(get_authorized_user)],
+    tweet_id: Annotated[int, Path(description="Id твита")],
+    response: Response,
+) -> ResultModel:
+    """Поставить лайк."""
+    tweet_qs = await db_session.execute(
+        select(models.Tweet).where(models.Tweet.id == tweet_id)
+    )
+    tweet = tweet_qs.scalar_one_or_none()
+    if tweet is None:
+        # попытка лайкнуть несуществующий твит
+        raise http_exception(TweetNotFound(f"tweet {tweet_id} doesn't exist"), status_code=404)
+
+    like_qs = await db_session.execute(
+        select(models.Like)
+        .where(
+            and_(
+                models.Like.tweet_id == tweet_id,
+                models.Like.user_id == auth_user.id
+            )
+        )
+    )
+    like = like_qs.scalar_one_or_none()
+
+    if like is not None:
+        # если пользователь уже лайкал этот твит
+        response.status_code = 200
+    else:
+        # если не лайкал, то ставим лайк
+        new_like = models.Like(
+            tweet_id=tweet_id,
+            user_id=auth_user.id
+        )
+        db_session.add(new_like)
+        await db_session.commit()
+
     return ResultModel(result=True)

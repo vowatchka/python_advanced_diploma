@@ -72,8 +72,9 @@ async def test_like_tweet(client: AsyncClient, test_user: db_models.User, test_t
             )
         )
     )
-    assert len(like_qs.scalars().all()) == 1
-    assert like_qs.scalar_one_or_none() is not None
+    likes = like_qs.scalars().all()
+    assert len(likes) == 1
+    assert likes[0] is not None
 
 
 @pytest.mark.parametrize(
@@ -112,8 +113,9 @@ async def test_like_tweet_again(client: AsyncClient, test_user: db_models.User, 
             )
         )
     )
-    assert len(like_qs.scalars().all()) == 1
-    assert like_qs.scalar_one_or_none() is not None
+    likes = like_qs.scalars().all()
+    assert len(likes) == 1
+    assert likes[0] is not None
 
 
 async def test_like_not_existed_tweet(client: AsyncClient, test_user: db_models.User):

@@ -35,3 +35,8 @@ class UploadFileSizeError(Exception):
 class ForbiddenError(Exception):
     """Ошибка, возникающая при недостатке прав доступа к чему-либо."""
     pass
+
+
+class TweetNotFound(Exception):
+    """Ошибка, возникающая, когда твита не существует."""
+    pass
