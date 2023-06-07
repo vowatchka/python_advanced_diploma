@@ -25,3 +25,8 @@ hvcs="gitlab"
 hvcs_domain="gitlab.skillbox.ru"
 hvcs_api_domain="gitlab.skillbox.ru/api/v4"
 tag_format="{version}"
+
+[tool.pytest.ini_options]
+markers=[
+    "post_likes: test add likes to tweets",
+]
