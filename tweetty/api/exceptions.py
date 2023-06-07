@@ -4,8 +4,6 @@ from .models import ErrorModel
 
 # описания кодов HTTP
 HTTP_403_FORBIDDEN_DESC = "Forbidden"
-HTTP_411_MEDIA_TOO_SMALL_DESC = "Media Too Small"
-HTTP_413_MEDIA_TOO_LARGE_DESC = "Media Too Large"
 HTTP_500_INTERNAL_SERVER_ERROR_DESC = "Internal Server Error"
 
 

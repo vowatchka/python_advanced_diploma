@@ -9,11 +9,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...db import models
 from ..auth import get_authorized_user
-from ..exceptions import (HTTP_411_MEDIA_TOO_SMALL_DESC, HTTP_413_MEDIA_TOO_LARGE_DESC,
-                          HTTP_500_INTERNAL_SERVER_ERROR_DESC, UploadFileSizeError, http_exception,)
+from ..exceptions import HTTP_500_INTERNAL_SERVER_ERROR_DESC, UploadFileSizeError, http_exception
 from ..models import HTTPErrorModel, NewMediaIn, NewMediaOut
 
-medias_router = APIRouter(prefix="/medias")
+medias_router = APIRouter(
+    prefix="/medias",
+    responses={
+        500: {"model": HTTPErrorModel, "description": HTTP_500_INTERNAL_SERVER_ERROR_DESC},
+    },
+)
 
 
 class UploadFileSizeValidator:
@@ -71,9 +75,8 @@ async def save_mediafile(path: Union[str, os.PathLike], media: BinaryIO):
     status_code=201,
     response_model=NewMediaOut,
     responses={
-        411: {"model": HTTPErrorModel, "description": HTTP_411_MEDIA_TOO_SMALL_DESC},
-        413: {"model": HTTPErrorModel, "description": HTTP_413_MEDIA_TOO_LARGE_DESC},
-        500: {"model": HTTPErrorModel, "description": HTTP_500_INTERNAL_SERVER_ERROR_DESC},
+        411: {"model": HTTPErrorModel, "description": "Media Too Small"},
+        413: {"model": HTTPErrorModel, "description": "Media Too Large"},
     },
     tags=["medias"]
 )
