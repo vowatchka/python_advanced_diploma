@@ -16,6 +16,8 @@ from ...api.routers import medias as media_routers
 from ...db import models as db_models
 from . import assert_http_error
 
+pytestmark = [pytest.mark.anyio, pytest.mark.post_medias]
+
 
 class MockMediaConfig:
     """Конфиг, которым будем мокать."""
@@ -58,7 +60,6 @@ def generate_mediafile_name(media: UploadFile) -> str:
     return media.filename
 
 
-@pytest.mark.anyio
 @pytest.mark.parametrize(
     "api_key",
     [
@@ -76,7 +77,6 @@ async def test_publish_new_media_auth(client: AsyncClient, api_key: str, test_fi
     assert response.status_code == 401
 
 
-@pytest.mark.anyio
 async def test_publish_new_media(client: AsyncClient, test_user: db_models.User, test_file: tuple[str, BinaryIO],
                                  test_file_uploaded_path: Union[PosixPath, WindowsPath], db_session: AsyncSession):
     """Проверка публикации нового медиа."""
@@ -101,7 +101,6 @@ async def test_publish_new_media(client: AsyncClient, test_user: db_models.User,
     assert tweet_media_qs.scalar_one_or_none() is not None
 
 
-@pytest.mark.anyio
 async def test_rollback_uploaded_file(client: AsyncClient, test_user: db_models.User, test_file: tuple[str, BinaryIO],
                                       test_file_uploaded_path: Union[PosixPath, WindowsPath],
                                       mocker: MockerFixture, db_session: AsyncSession):
@@ -122,7 +121,6 @@ async def test_rollback_uploaded_file(client: AsyncClient, test_user: db_models.
     assert not test_file_uploaded_path.exists()
 
 
-@pytest.mark.anyio
 async def test_save_mediafile(test_file_uploaded_path: Union[PosixPath, WindowsPath], test_file: tuple[str, BinaryIO]):
     """Проверка сохранения медиа-файла на диск."""
     assert not test_file_uploaded_path.exists()
@@ -132,7 +130,6 @@ async def test_save_mediafile(test_file_uploaded_path: Union[PosixPath, WindowsP
     assert test_file_uploaded_path.exists()
 
 
-@pytest.mark.anyio
 @pytest.mark.parametrize(
     "min_size, max_size, expected_status_code",
     [

@@ -28,5 +28,9 @@ tag_format="{version}"
 
 [tool.pytest.ini_options]
 markers=[
+    "tweets: test work with tweets",
+    "post_tweets: test publish new tweets",
+    "delete_tweets: test delete tweets",
+    "post_medias: test publish media-files",
     "post_likes: test add likes to tweets",
 ]

@@ -12,6 +12,8 @@ from ...api import models as api_models
 from ...db import models as db_models
 from . import assert_http_error
 
+pytestmark = [pytest.mark.anyio, pytest.mark.tweets]
+
 
 @pytest.fixture
 async def test_tweet(db_session: AsyncSession, test_user: db_models.User):
@@ -25,7 +27,7 @@ async def test_tweet(db_session: AsyncSession, test_user: db_models.User):
     yield tweet
 
 
-@pytest.mark.anyio
+@pytest.mark.post_tweets
 @pytest.mark.parametrize(
     "tweet_data",
     [
@@ -54,7 +56,7 @@ async def test_publish_new_tweet(client: AsyncClient, test_user: db_models.User,
     assert tweet_qs.scalar_one_or_none() is not None
 
 
-@pytest.mark.anyio
+@pytest.mark.post_tweets
 @pytest.mark.parametrize(
     "tweet_data",
     [
@@ -74,7 +76,7 @@ async def test_publish_empty_tweet(client: AsyncClient, test_user: db_models.Use
     assert response.status_code == 422
 
 
-@pytest.mark.anyio
+@pytest.mark.post_tweets
 async def test_truncate_tweet_text(client: AsyncClient, test_user: db_models.User, db_session: AsyncSession):
     """Проверка обрезания текста твита, если он слишком длинный."""
     tweet_max_length = api_models.NewTweetIn.ContentFieldConfig.curtail_length
@@ -95,7 +97,7 @@ async def test_truncate_tweet_text(client: AsyncClient, test_user: db_models.Use
     assert len(tweet.content) == tweet_max_length
 
 
-@pytest.mark.anyio
+@pytest.mark.post_tweets
 @pytest.mark.parametrize(
     "api_key",
     [
@@ -113,7 +115,7 @@ async def test_publish_new_tweet_auth(client: AsyncClient, api_key: str):
     assert response.status_code == 401
 
 
-@pytest.mark.anyio
+@pytest.mark.post_tweets
 @pytest.mark.parametrize(
     "media_count",
     [0, 1, 2, 3]
@@ -150,7 +152,7 @@ async def test_publish_new_tweet_with_medias(client: AsyncClient, test_user: db_
         assert media.tweet_id == resp["tweet_id"]
 
 
-@pytest.mark.anyio
+@pytest.mark.post_tweets
 async def test_publish_new_tweet_media_items(client: AsyncClient, test_user: db_models.User, db_session: AsyncSession):
     """Проверка ограничения количества медиа-файлов, прикрепляемых к твиту"""
     # добавляем медиа
@@ -175,7 +177,7 @@ async def test_publish_new_tweet_media_items(client: AsyncClient, test_user: db_
     assert response.status_code == 422
 
 
-@pytest.mark.anyio
+@pytest.mark.delete_tweets
 @pytest.mark.parametrize(
     "api_key",
     [
@@ -192,8 +194,7 @@ async def test_delete_tweet_auth(client: AsyncClient, api_key: str):
     assert response.status_code == 401
 
 
-@pytest.mark.anyio
-@pytest.mark.usefixtures("test_file", "test_file_uploaded_path")
+@pytest.mark.delete_tweets
 async def test_delete_tweet(client: AsyncClient, test_user: db_models.User, test_tweet: db_models.Tweet,
                             db_session: AsyncSession, test_file: tuple[str, BinaryIO],
                             test_file_uploaded_path: Union[PosixPath, WindowsPath]):
@@ -232,7 +233,7 @@ async def test_delete_tweet(client: AsyncClient, test_user: db_models.User, test
     assert not test_file_uploaded_path.exists()
 
 
-@pytest.mark.anyio
+@pytest.mark.delete_tweets
 async def test_delete_tweet_idempotency(client: AsyncClient, test_user: db_models.User, test_tweet: db_models.Tweet):
     """Проверка идемпотентности удаления твита."""
     response = await client.delete(
@@ -250,7 +251,7 @@ async def test_delete_tweet_idempotency(client: AsyncClient, test_user: db_model
     assert response.status_code == 200
 
 
-@pytest.mark.anyio
+@pytest.mark.delete_tweets
 async def test_delete_someone_else_tweet(client: AsyncClient, test_user: db_models.User, test_tweet: db_models.Tweet,
                                          db_session: AsyncSession):
     """Проверка запрета на удаление чужого твита."""
