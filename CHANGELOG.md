@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.5.0 (2023-06-07)
+
+### Feature
+
+* #8: add route and logic for like tweets ([`00f76f0`](https://gitlab.skillbox.ru/vladimir_saltykov/python_advanced_diploma/-/commit/00f76f008a1ae14de19b65338621a297e2772fee))
+
 ## v0.4.0 (2023-06-06)
 
 ### Feature
