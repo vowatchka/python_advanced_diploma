@@ -1,13 +1,13 @@
 import os
 from pathlib import Path as OsPath
-from typing import Annotated
+from typing import Annotated, Optional
 
 from fastapi import APIRouter, Depends, Path, Response
-from sqlalchemy import and_, select, update
+from sqlalchemy import and_, update
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
 from ...db import models
+from ...shortcuts import get_object_or_none
 from ..auth import get_authorized_user
 from ..exceptions import (HTTP_403_FORBIDDEN_DESC, HTTP_500_INTERNAL_SERVER_ERROR_DESC, ForbiddenError, TweetNotFound,
                           http_exception,)
@@ -21,6 +21,40 @@ tweets_router = APIRouter(
 )
 tweets_tags = ["tweets"]
 likes_tags = tweets_tags + ["likes"]
+
+TweetId = Annotated[int, Path(description="Id твита")]
+
+
+async def get_tweet_or_none(db_session: Annotated[AsyncSession, Depends(models.db_session)],
+                            tweet_id: TweetId) -> Optional[models.Tweet]:
+    """Возвращает твит или `None`."""
+    return await get_object_or_none(
+        db_session,
+        models.Tweet,
+        models.Tweet.id == tweet_id
+    )
+
+
+async def get_tweet_or_404(tweet: Annotated[Optional[models.Tweet], Depends(get_tweet_or_none)],
+                           tweet_id: TweetId) -> models.Tweet:
+    """Возвращает твит или возбуждает `404 Not Found`, если твита нет."""
+    if tweet is None:
+        raise http_exception(TweetNotFound(f"tweet {tweet_id} doesn't exist",), status_code=404)
+    return tweet
+
+
+async def get_like_or_none(db_session: Annotated[AsyncSession, Depends(models.db_session)],
+                           tweet: Annotated[models.Tweet, Depends(get_tweet_or_404)],
+                           auth_user: Annotated[models.User, Depends(get_authorized_user)]) -> Optional[models.Like]:
+    """Возвращает лайк или `None`."""
+    return await get_object_or_none(
+        db_session,
+        models.Like,
+        and_(
+            models.Like.tweet_id == tweet.id,
+            models.Like.user_id == auth_user.id
+        )
+    )
 
 
 @tweets_router.post(
@@ -69,16 +103,9 @@ async def publish_new_tweet(
 async def delete_tweet(
     db_session: Annotated[AsyncSession, Depends(models.db_session)],
     auth_user: Annotated[models.User, Depends(get_authorized_user)],
-    tweet_id: Annotated[int, Path(description="Id твита")],
+    tweet: Annotated[Optional[models.Tweet], Depends(get_tweet_or_none)],
 ) -> ResultModel:
     """Удаление твита."""
-    tweet_qs = await db_session.execute(
-        select(models.Tweet)
-        .where(models.Tweet.id == tweet_id)
-        .options(selectinload(models.Tweet.medias))
-    )
-    tweet: models.Tweet = tweet_qs.scalar_one_or_none()
-
     # пытаемся удалить твит, если он существует
     if tweet is not None:
         # запрет на удаление чужого твита
@@ -89,9 +116,12 @@ async def delete_tweet(
             )
 
         # получаем пути до медиа, прикрепленных к удаляемому твиту
+        await db_session.refresh(tweet, attribute_names=["medias"])
         media_file_paths = [OsPath(media.rel_uri).resolve() for media in tweet.medias]
+
         # удаляем твит
         await db_session.delete(tweet)
+        await db_session.commit()
 
         # удаляем медиа
         for file_path in media_file_paths:
@@ -118,29 +148,11 @@ async def delete_tweet(
 async def like_tweet(
     db_session: Annotated[AsyncSession, Depends(models.db_session)],
     auth_user: Annotated[models.User, Depends(get_authorized_user)],
-    tweet_id: Annotated[int, Path(description="Id твита")],
+    tweet_id: TweetId,
+    like: Annotated[Optional[models.Like], Depends(get_like_or_none)],
     response: Response,
 ) -> ResultModel:
     """Поставить лайк."""
-    tweet_qs = await db_session.execute(
-        select(models.Tweet).where(models.Tweet.id == tweet_id)
-    )
-    tweet = tweet_qs.scalar_one_or_none()
-    if tweet is None:
-        # попытка лайкнуть несуществующий твит
-        raise http_exception(TweetNotFound(f"tweet {tweet_id} doesn't exist"), status_code=404)
-
-    like_qs = await db_session.execute(
-        select(models.Like)
-        .where(
-            and_(
-                models.Like.tweet_id == tweet_id,
-                models.Like.user_id == auth_user.id
-            )
-        )
-    )
-    like = like_qs.scalar_one_or_none()
-
     if like is not None:
         # если пользователь уже лайкал этот твит
         response.status_code = 200
@@ -153,4 +165,29 @@ async def like_tweet(
         db_session.add(new_like)
         await db_session.commit()
 
+    return ResultModel(result=True)
+
+
+@tweets_router.delete(
+    "/{tweet_id}/likes",
+    summary="Убрать лайк",
+    status_code=200,
+    response_model=ResultModel,
+    response_description="Tweet Unliked",
+    responses={
+        404: {"model": HTTPErrorModel, "description": "Tweet Not Found"},
+    },
+    tags=likes_tags,
+)
+async def unlike_tweet(
+    db_session: Annotated[AsyncSession, Depends(models.db_session)],
+    like: Annotated[Optional[models.Like], Depends(get_like_or_none)],
+) -> ResultModel:
+    """Убрать лайк."""
+    if like is not None:
+        await db_session.delete(like)
+        await db_session.commit()
+
+    # если лайк отсутствует, то все равно возвращает `True`,
+    # чтобы соблюсти идемпотентность метода DELETE
     return ResultModel(result=True)

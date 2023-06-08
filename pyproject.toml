@@ -32,5 +32,7 @@ markers=[
     "post_tweets: test publish new tweets",
     "delete_tweets: test delete tweets",
     "post_medias: test publish media-files",
+    "likes: test work with likes",
     "post_likes: test add likes to tweets",
+    "delete_likes: test delele likes",
 ]
