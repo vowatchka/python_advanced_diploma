@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 
 from .exception_handlers import common_exception_handler
+from .models import HTTPErrorModel
 from .routers import api_router
 
 
@@ -19,6 +20,9 @@ def create_api() -> FastAPI:
         },
         exception_handlers={
             Exception: common_exception_handler,
+        },
+        responses={
+            401: {"model": HTTPErrorModel, "description": "Unauthorized"},
         },
     )
 

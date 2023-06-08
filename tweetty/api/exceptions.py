@@ -38,3 +38,8 @@ class ForbiddenError(Exception):
 class TweetNotFound(Exception):
     """Ошибка, возникающая, когда твита не существует."""
     pass
+
+
+class UnauthorizedError(Exception):
+    """Ошибка авторизации."""
+    pass

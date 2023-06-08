@@ -1,12 +1,13 @@
 from typing import Annotated
 
-from fastapi import Depends, HTTPException, Security
+from fastapi import Depends, Security
 from fastapi.openapi.models import APIKey
 from fastapi.security import APIKeyHeader
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..db import models
+from .exceptions import UnauthorizedError, http_exception
 
 api_key_header = APIKeyHeader(
     name="api-key",
@@ -19,9 +20,9 @@ api_key_header = APIKeyHeader(
 async def get_api_key(api_key: Annotated[str, Security(api_key_header)]) -> str:
     """Возвращает ключ авторизации пользователя."""
     if not api_key:
-        raise HTTPException(
-            status_code=401,
-            detail="Missed APIKey header"
+        raise http_exception(
+            UnauthorizedError("Missed APIKey header"),
+            status_code=401
         )
     return api_key
 
@@ -37,8 +38,8 @@ async def get_authorized_user(
     user: models.User = user_qs.scalar_one_or_none()
 
     if not user:
-        raise HTTPException(
-            status_code=401,
-            detail="No user with such APIKey"
+        raise http_exception(
+            UnauthorizedError("No user with such APIKey"),
+            status_code=401
         )
     return user

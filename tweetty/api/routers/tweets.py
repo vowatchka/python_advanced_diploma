@@ -28,6 +28,7 @@ likes_tags = tweets_tags + ["likes"]
     summary="Опубликовать новый твит",
     status_code=201,
     response_model=NewTweetOut,
+    response_description="Tweet Created",
     tags=tweets_tags,
 )
 async def publish_new_tweet(
@@ -59,6 +60,7 @@ async def publish_new_tweet(
     summary="Удалить твит",
     status_code=200,
     response_model=ResultModel,
+    response_description="Tweet Deleted",
     responses={
         403: {"model": HTTPErrorModel, "description": HTTP_403_FORBIDDEN_DESC},
     },
@@ -106,6 +108,7 @@ async def delete_tweet(
     summary="Поставить лайк",
     status_code=201,
     response_model=ResultModel,
+    response_description="Tweet Liked",
     responses={
         200: {"model": ResultModel, "description": "Already Liked"},
         404: {"model": HTTPErrorModel, "description": "Tweet Not Found"},

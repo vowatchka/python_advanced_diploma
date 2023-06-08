@@ -74,6 +74,7 @@ async def save_mediafile(path: Union[str, os.PathLike], media: BinaryIO):
     summary="Опубликовать новый медиа",
     status_code=201,
     response_model=NewMediaOut,
+    response_description="Media Uploaded",
     responses={
         411: {"model": HTTPErrorModel, "description": "Media Too Small"},
         413: {"model": HTTPErrorModel, "description": "Media Too Large"},
