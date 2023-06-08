@@ -36,4 +36,6 @@ markers=[
     "likes: test work with likes",
     "post_likes: test add likes to tweets",
     "delete_likes: test delele likes",
+    "follows: test work with follows",
+    "post_follows: test follow to user",
 ]

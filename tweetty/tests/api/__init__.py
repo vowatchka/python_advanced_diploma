@@ -48,6 +48,11 @@ class APITestClient:
         return f"/api/tweets/{tweet_id}/likes"
 
     @staticmethod
+    def follow_route(user_id: int) -> str:
+        """Возвращает роут подписки."""
+        return f"/api/users/{user_id}/follow"
+
+    @staticmethod
     def api_key_header(api_key: str) -> APIKeyHeader:
         """Возвращает заголовок `api-key`."""
         return {"api-key": api_key}
@@ -86,6 +91,13 @@ class APITestClient:
         """Снять лайк."""
         return await self._client.delete(
             self.likes_route(tweet_id),
+            headers=self.api_key_header(api_key),
+        )
+
+    async def follow(self, user_id: int, api_key: str) -> Response:
+        """Подписаться на пользователя."""
+        return await self._client.post(
+            self.follow_route(user_id),
             headers=self.api_key_header(api_key),
         )
 
