@@ -113,6 +113,7 @@ async def test_publish_new_tweet_auth(client: AsyncClient, api_key: str):
         headers={"api-key": api_key}
     )
     assert response.status_code == 401
+    assert_http_error(response.json())
 
 
 @pytest.mark.post_tweets
@@ -192,6 +193,7 @@ async def test_delete_tweet_auth(client: AsyncClient, api_key: str):
         headers={"api-key": api_key},
     )
     assert response.status_code == 401
+    assert_http_error(response.json())
 
 
 @pytest.mark.delete_tweets
@@ -252,7 +254,7 @@ async def test_delete_tweet_idempotency(client: AsyncClient, test_user: db_model
 
 
 @pytest.mark.delete_tweets
-async def test_delete_someone_else_tweet(client: AsyncClient, test_user: db_models.User, test_tweet: db_models.Tweet,
+async def test_delete_someone_else_tweet(client: AsyncClient, test_tweet: db_models.Tweet,
                                          db_session: AsyncSession):
     """Проверка запрета на удаление чужого твита."""
     # создаем юзера, который будет удалять твит

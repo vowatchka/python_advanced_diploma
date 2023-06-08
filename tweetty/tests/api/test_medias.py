@@ -75,6 +75,7 @@ async def test_publish_new_media_auth(client: AsyncClient, api_key: str, test_fi
         headers={"api-key": api_key}
     )
     assert response.status_code == 401
+    assert_http_error(response.json())
 
 
 async def test_publish_new_media(client: AsyncClient, test_user: db_models.User, test_file: tuple[str, BinaryIO],
@@ -150,3 +151,4 @@ async def test_upload_file_size(client: AsyncClient, test_user: db_models.User, 
         headers={"api-key": test_user.api_key},
     )
     assert response.status_code == expected_status_code
+    assert_http_error(response.json())

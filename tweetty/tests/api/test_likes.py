@@ -36,6 +36,7 @@ async def test_like_auth(client: AsyncClient, api_key: str, test_tweet: db_model
         headers={"api-key": api_key},
     )
     assert response.status_code == 401
+    assert_http_error(response.json())
 
 
 @pytest.mark.parametrize(
