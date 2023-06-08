@@ -2,6 +2,16 @@
 
 <!--next-version-placeholder-->
 
+## v0.6.0 (2023-06-08)
+
+### Feature
+
+* #9: add unlike route and logic ([`52bb019`](https://gitlab.skillbox.ru/vladimir_saltykov/python_advanced_diploma/-/commit/52bb01946e55f9ed76c0b3a1e0edfdfe0bbe6281))
+
+### Documentation
+
+* Update Swagger docs ([`f44180f`](https://gitlab.skillbox.ru/vladimir_saltykov/python_advanced_diploma/-/commit/f44180f70d1cbe559ff456c3594ecfc5c3020838))
+
 ## v0.5.0 (2023-06-07)
 
 ### Feature
