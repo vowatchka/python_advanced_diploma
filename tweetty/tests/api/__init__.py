@@ -1,4 +1,4 @@
-from typing import TypedDict
+from typing import BinaryIO, Optional, TypedDict
 
 import pytest
 from httpx import AsyncClient, Response
@@ -30,6 +30,19 @@ class APITestClient:
         self._client = client
 
     @staticmethod
+    def tweets_route(tweet_id: Optional[int] = None) -> str:
+        """Возвращает роут твитов."""
+        route = "/api/tweets"
+        if tweet_id is not None:
+            route += f"/{tweet_id}"
+        return route
+
+    @staticmethod
+    def medias_route() -> str:
+        """Возвращает роут медиа."""
+        return "/api/medias"
+
+    @staticmethod
     def likes_route(tweet_id: int) -> str:
         """Возвращает роут лайков."""
         return f"/api/tweets/{tweet_id}/likes"
@@ -38,6 +51,29 @@ class APITestClient:
     def api_key_header(api_key: str) -> APIKeyHeader:
         """Возвращает заголовок `api-key`."""
         return {"api-key": api_key}
+
+    async def publish_tweet(self, json_data: dict, api_key: str) -> Response:
+        """Опубликовать твит."""
+        return await self._client.post(
+            self.tweets_route(),
+            json=json_data,
+            headers=self.api_key_header(api_key),
+        )
+
+    async def delete_tweet(self, tweet_id: int, api_key: str) -> Response:
+        """Удалить твит."""
+        return await self._client.delete(
+            self.tweets_route(tweet_id=tweet_id),
+            headers=self.api_key_header(api_key),
+        )
+
+    async def upload_media(self, files: tuple[str, BinaryIO], api_key: str) -> Response:
+        """Загрузить медиа."""
+        return await self._client.post(
+            self.medias_route(),
+            files={"media": files},
+            headers=self.api_key_header(api_key),
+        )
 
     async def like(self, tweet_id: int, api_key: str) -> Response:
         """Поставить лайк."""

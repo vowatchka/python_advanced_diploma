@@ -5,7 +5,6 @@ from typing import BinaryIO, Union
 
 import pytest
 from fastapi import FastAPI, UploadFile
-from httpx import AsyncClient
 from pytest_mock import MockerFixture
 from sqlalchemy import select
 from sqlalchemy.exc import DatabaseError
@@ -14,7 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ...api import models as api_models
 from ...api.routers import medias as media_routers
 from ...db import models as db_models
-from . import assert_http_error
+from . import APITestClient, assert_http_error
 
 pytestmark = [pytest.mark.anyio, pytest.mark.post_medias]
 
@@ -67,25 +66,17 @@ def generate_mediafile_name(media: UploadFile) -> str:
         "no" * 15,
     ]
 )
-async def test_publish_new_media_auth(client: AsyncClient, api_key: str, test_file: tuple[str, BinaryIO]):
+async def test_publish_new_media_auth(api_client: APITestClient, api_key: str, test_file: tuple[str, BinaryIO]):
     """Проверка авторизации для публикации нового медиа."""
-    response = await client.post(
-        "/api/medias",
-        files={"media": test_file},
-        headers={"api-key": api_key}
-    )
+    response = await api_client.upload_media(test_file, api_key)
     assert response.status_code == 401
     assert_http_error(response.json())
 
 
-async def test_publish_new_media(client: AsyncClient, test_user: db_models.User, test_file: tuple[str, BinaryIO],
+async def test_publish_new_media(api_client: APITestClient, test_user: db_models.User, test_file: tuple[str, BinaryIO],
                                  test_file_uploaded_path: Union[PosixPath, WindowsPath], db_session: AsyncSession):
     """Проверка публикации нового медиа."""
-    response = await client.post(
-        "/api/medias",
-        files={"media": test_file},
-        headers={"api-key": test_user.api_key},
-    )
+    response = await api_client.upload_media(test_file, test_user.api_key)
     assert response.status_code == 201
 
     resp = response.json()
@@ -102,7 +93,8 @@ async def test_publish_new_media(client: AsyncClient, test_user: db_models.User,
     assert tweet_media_qs.scalar_one_or_none() is not None
 
 
-async def test_rollback_uploaded_file(client: AsyncClient, test_user: db_models.User, test_file: tuple[str, BinaryIO],
+async def test_rollback_uploaded_file(api_client: APITestClient, test_user: db_models.User,
+                                      test_file: tuple[str, BinaryIO],
                                       test_file_uploaded_path: Union[PosixPath, WindowsPath],
                                       mocker: MockerFixture, db_session: AsyncSession):
     """Проверка удаления загруженного файла, если не удается сохранить его в БД."""
@@ -110,11 +102,7 @@ async def test_rollback_uploaded_file(client: AsyncClient, test_user: db_models.
     error = DatabaseError("error", ("test",), TypeError("test"))
     mocker.patch.object(db_session, "add", autospec=True, side_effect=error)
 
-    response = await client.post(
-        "/api/medias",
-        files={"media": test_file},
-        headers={"api-key": test_user.api_key},
-    )
+    response = await api_client.upload_media(test_file, test_user.api_key)
     assert response.status_code == 500
 
     assert_http_error(response.json())
@@ -138,17 +126,13 @@ async def test_save_mediafile(test_file_uploaded_path: Union[PosixPath, WindowsP
         (30000, 40000, 411),
     ]
 )
-async def test_upload_file_size(client: AsyncClient, test_user: db_models.User, test_file: tuple[str, BinaryIO],
+async def test_upload_file_size(api_client: APITestClient, test_user: db_models.User, test_file: tuple[str, BinaryIO],
                                 api: FastAPI, min_size: int, max_size: int, expected_status_code: int):
     """Проверка ограничения размера загружаемого файла."""
     # мокаем зависимость
     mock_upload_file_size_validator = media_routers.UploadFileSizeValidator(min_size=min_size, max_size=max_size)
     api.dependency_overrides[media_routers.upload_file_size_validator] = mock_upload_file_size_validator
 
-    response = await client.post(
-        "/api/medias",
-        files={"media": test_file},
-        headers={"api-key": test_user.api_key},
-    )
+    response = await api_client.upload_media(test_file, test_user.api_key)
     assert response.status_code == expected_status_code
     assert_http_error(response.json())

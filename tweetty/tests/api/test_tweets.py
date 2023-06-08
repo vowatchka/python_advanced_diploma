@@ -4,13 +4,12 @@ from typing import BinaryIO, Union
 
 import aiofiles
 import pytest
-from httpx import AsyncClient
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...api import models as api_models
 from ...db import models as db_models
-from . import assert_http_error
+from . import APITestClient, assert_http_error
 
 pytestmark = [pytest.mark.anyio, pytest.mark.tweets]
 
@@ -35,14 +34,10 @@ async def test_tweet(db_session: AsyncSession, test_user: db_models.User):
         "test tweet"
     ]
 )
-async def test_publish_new_tweet(client: AsyncClient, test_user: db_models.User, tweet_data: str,
+async def test_publish_new_tweet(api_client: APITestClient, test_user: db_models.User, tweet_data: str,
                                  db_session: AsyncSession):
     """Проверка публикации нового твита."""
-    response = await client.post(
-        "/api/tweets",
-        json={"tweet_data": tweet_data},
-        headers={"api-key": test_user.api_key}
-    )
+    response = await api_client.publish_tweet({"tweet_data": tweet_data}, test_user.api_key)
     assert response.status_code == 201
 
     resp = response.json()
@@ -66,26 +61,18 @@ async def test_publish_new_tweet(client: AsyncClient, test_user: db_models.User,
         "\r\n",
     ]
 )
-async def test_publish_empty_tweet(client: AsyncClient, test_user: db_models.User, tweet_data: str):
+async def test_publish_empty_tweet(api_client: APITestClient, test_user: db_models.User, tweet_data: str):
     """Проверка невозможности добавить твит без текста или состоящий только из пробельных символов."""
-    response = await client.post(
-        "/api/tweets",
-        json={"tweet_data": tweet_data},
-        headers={"api-key": test_user.api_key}
-    )
+    response = await api_client.publish_tweet({"tweet_data": tweet_data}, test_user.api_key)
     assert response.status_code == 422
 
 
 @pytest.mark.post_tweets
-async def test_truncate_tweet_text(client: AsyncClient, test_user: db_models.User, db_session: AsyncSession):
+async def test_truncate_tweet_text(api_client: APITestClient, test_user: db_models.User, db_session: AsyncSession):
     """Проверка обрезания текста твита, если он слишком длинный."""
     tweet_max_length = api_models.NewTweetIn.ContentFieldConfig.curtail_length
 
-    response = await client.post(
-        "/api/tweets",
-        json={"tweet_data": "t" * (tweet_max_length + 10)},
-        headers={"api-key": test_user.api_key}
-    )
+    response = await api_client.publish_tweet({"tweet_data": "t" * (tweet_max_length + 10)}, test_user.api_key)
     assert response.status_code == 201
 
     tweet_id = response.json()["tweet_id"]
@@ -104,13 +91,9 @@ async def test_truncate_tweet_text(client: AsyncClient, test_user: db_models.Use
         "no" * 15,
     ]
 )
-async def test_publish_new_tweet_auth(client: AsyncClient, api_key: str):
+async def test_publish_new_tweet_auth(api_client: APITestClient, api_key: str):
     """Проверка авторизации для публикации нового твита."""
-    response = await client.post(
-        "/api/tweets",
-        json={"tweet_data": "test"},
-        headers={"api-key": api_key}
-    )
+    response = await api_client.publish_tweet({"tweet_data": "test"}, api_key)
     assert response.status_code == 401
     assert_http_error(response.json())
 
@@ -120,8 +103,8 @@ async def test_publish_new_tweet_auth(client: AsyncClient, api_key: str):
     "media_count",
     [0, 1, 2, 3]
 )
-async def test_publish_new_tweet_with_medias(client: AsyncClient, test_user: db_models.User, db_session: AsyncSession,
-                                             media_count: int):
+async def test_publish_new_tweet_with_medias(api_client: APITestClient, test_user: db_models.User,
+                                             db_session: AsyncSession, media_count: int):
     """Проверка добавления медиа к твиту."""
     # добавляем медиа
     medias = list()
@@ -134,13 +117,12 @@ async def test_publish_new_tweet_with_medias(client: AsyncClient, test_user: db_
     db_session.add_all(medias)
     await db_session.commit()
 
-    response = await client.post(
-        "/api/tweets",
-        json={
+    response = await api_client.publish_tweet(
+        {
             "tweet_data": "test",
             "tweet_media_ids": [media.id for media in medias],
         },
-        headers={"api-key": test_user.api_key},
+        test_user.api_key
     )
     assert response.status_code == 201
 
@@ -153,7 +135,8 @@ async def test_publish_new_tweet_with_medias(client: AsyncClient, test_user: db_
 
 
 @pytest.mark.post_tweets
-async def test_publish_new_tweet_media_items(client: AsyncClient, test_user: db_models.User, db_session: AsyncSession):
+async def test_publish_new_tweet_media_items(api_client: APITestClient, test_user: db_models.User,
+                                             db_session: AsyncSession):
     """Проверка ограничения количества медиа-файлов, прикрепляемых к твиту"""
     # добавляем медиа
     medias = list()
@@ -166,13 +149,12 @@ async def test_publish_new_tweet_media_items(client: AsyncClient, test_user: db_
     db_session.add_all(medias)
     await db_session.commit()
 
-    response = await client.post(
-        "/api/tweets",
-        json={
+    response = await api_client.publish_tweet(
+        {
             "tweet_data": "test",
             "tweet_media_ids": [media.id for media in medias],
         },
-        headers={"api-key": test_user.api_key},
+        test_user.api_key
     )
     assert response.status_code == 422
 
@@ -185,18 +167,15 @@ async def test_publish_new_tweet_media_items(client: AsyncClient, test_user: db_
         "no" * 15,
     ]
 )
-async def test_delete_tweet_auth(client: AsyncClient, api_key: str):
+async def test_delete_tweet_auth(api_client: APITestClient, api_key: str):
     """Проверка авторизации для удаления твита."""
-    response = await client.delete(
-        "/api/tweets/1",
-        headers={"api-key": api_key},
-    )
+    response = await api_client.delete_tweet(1, api_key)
     assert response.status_code == 401
     assert_http_error(response.json())
 
 
 @pytest.mark.delete_tweets
-async def test_delete_tweet(client: AsyncClient, test_user: db_models.User, test_tweet: db_models.Tweet,
+async def test_delete_tweet(api_client: APITestClient, test_user: db_models.User, test_tweet: db_models.Tweet,
                             db_session: AsyncSession, test_file: tuple[str, BinaryIO],
                             test_file_uploaded_path: Union[PosixPath, WindowsPath]):
     """Проверка удаления существующего твита."""
@@ -212,10 +191,7 @@ async def test_delete_tweet(client: AsyncClient, test_user: db_models.User, test
     db_session.add(new_media)
     await db_session.commit()
 
-    response = await client.delete(
-        f"/api/tweets/{test_tweet.id}",
-        headers={"api-key": test_user.api_key},
-    )
+    response = await api_client.delete_tweet(test_tweet.id, test_user.api_key)
     assert response.status_code == 200
 
     resp = response.json()
@@ -235,25 +211,20 @@ async def test_delete_tweet(client: AsyncClient, test_user: db_models.User, test
 
 
 @pytest.mark.delete_tweets
-async def test_delete_tweet_idempotency(client: AsyncClient, test_user: db_models.User, test_tweet: db_models.Tweet):
+async def test_delete_tweet_idempotency(api_client: APITestClient, test_user: db_models.User,
+                                        test_tweet: db_models.Tweet):
     """Проверка идемпотентности удаления твита."""
-    response = await client.delete(
-        f"/api/tweets/{test_tweet.id}",
-        headers={"api-key": test_user.api_key},
-    )
+    response = await api_client.delete_tweet(test_tweet.id, test_user.api_key)
     assert response.status_code == 200
 
     # повторно удаляем удаленный твит
-    response = await client.delete(
-        f"/api/tweets/{test_tweet.id}",
-        headers={"api-key": test_user.api_key},
-    )
+    response = await api_client.delete_tweet(test_tweet.id, test_user.api_key)
     # метод DELETE должен быть идемпотентным
     assert response.status_code == 200
 
 
 @pytest.mark.delete_tweets
-async def test_delete_someone_else_tweet(client: AsyncClient, test_tweet: db_models.Tweet,
+async def test_delete_someone_else_tweet(api_client: APITestClient, test_tweet: db_models.Tweet,
                                          db_session: AsyncSession):
     """Проверка запрета на удаление чужого твита."""
     # создаем юзера, который будет удалять твит
@@ -264,10 +235,7 @@ async def test_delete_someone_else_tweet(client: AsyncClient, test_tweet: db_mod
     db_session.add(hacker)
     await db_session.commit()
 
-    response = await client.delete(
-        f"/api/tweets/{test_tweet.id}",
-        headers={"api-key": hacker.api_key},
-    )
+    response = await api_client.delete_tweet(test_tweet.id, hacker.api_key)
     assert response.status_code == 403
 
     assert_http_error(response.json())
