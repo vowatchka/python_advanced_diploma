@@ -1,12 +1,11 @@
 import pytest
-from httpx import AsyncClient
 from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...db import models as db_models
-from . import assert_http_error
+from . import APITestClient, assert_http_error
 
-pytestmark = [pytest.mark.anyio, pytest.mark.post_likes]
+pytestmark = [pytest.mark.anyio, pytest.mark.likes]
 
 
 @pytest.fixture
@@ -22,6 +21,7 @@ async def liker_user(db_session: AsyncSession):
     yield liker
 
 
+@pytest.mark.post_likes
 @pytest.mark.parametrize(
     "api_key",
     [
@@ -29,21 +29,19 @@ async def liker_user(db_session: AsyncSession):
         "no" * 15,
     ]
 )
-async def test_like_auth(client: AsyncClient, api_key: str, test_tweet: db_models.Tweet):
+async def test_like_auth(api_client: APITestClient, api_key: str, test_tweet: db_models.Tweet):
     """Проверка авторизации для добавления лайка."""
-    response = await client.post(
-        f"/api/tweets/{test_tweet.id}/likes",
-        headers={"api-key": api_key},
-    )
+    response = await api_client.like(test_tweet.id, api_key)
     assert response.status_code == 401
     assert_http_error(response.json())
 
 
+@pytest.mark.post_likes
 @pytest.mark.parametrize(
     "own_tweet",
     [True, False]
 )
-async def test_like_tweet(client: AsyncClient, test_user: db_models.User, test_tweet: db_models.Tweet,
+async def test_like_tweet(api_client: APITestClient, test_user: db_models.User, test_tweet: db_models.Tweet,
                           liker_user: db_models.User, own_tweet: bool, db_session: AsyncSession):
     """
     Проверка добавления лайка твит.
@@ -53,10 +51,7 @@ async def test_like_tweet(client: AsyncClient, test_user: db_models.User, test_t
     """
     user = test_user if own_tweet else liker_user
 
-    response = await client.post(
-        f"/api/tweets/{test_tweet.id}/likes",
-        headers={"api-key": user.api_key},
-    )
+    response = await api_client.like(test_tweet.id, user.api_key)
     assert response.status_code == 201
 
     resp = response.json()
@@ -78,27 +73,22 @@ async def test_like_tweet(client: AsyncClient, test_user: db_models.User, test_t
     assert likes[0] is not None
 
 
+@pytest.mark.post_likes
 @pytest.mark.parametrize(
     "own_tweet",
     [True, False]
 )
-async def test_like_tweet_again(client: AsyncClient, test_user: db_models.User, test_tweet: db_models.Tweet,
+async def test_like_tweet_again(api_client: APITestClient, test_user: db_models.User, test_tweet: db_models.Tweet,
                                 liker_user: db_models.User, own_tweet: bool, db_session: AsyncSession):
     """Проверка повторного лайка твита, который пользователь уже лайкнул."""
     user = test_user if own_tweet else liker_user
 
     # лайкаем
-    response = await client.post(
-        f"/api/tweets/{test_tweet.id}/likes",
-        headers={"api-key": user.api_key},
-    )
+    response = await api_client.like(test_tweet.id, user.api_key)
     assert response.status_code == 201
 
     # лайкаем еще раз
-    response = await client.post(
-        f"/api/tweets/{test_tweet.id}/likes",
-        headers={"api-key": user.api_key},
-    )
+    response = await api_client.like(test_tweet.id, user.api_key)
     assert response.status_code == 200
 
     resp = response.json()
@@ -119,12 +109,10 @@ async def test_like_tweet_again(client: AsyncClient, test_user: db_models.User, 
     assert likes[0] is not None
 
 
-async def test_like_not_existed_tweet(client: AsyncClient, test_user: db_models.User):
+@pytest.mark.post_likes
+async def test_like_not_existed_tweet(api_client: APITestClient, test_user: db_models.User):
     """Проверка лайка несуществующего твита."""
-    response = await client.post(
-        "/api/tweets/100500/likes",
-        headers={"api-key": test_user.api_key},
-    )
+    response = await api_client.like(100500, test_user.api_key)
     assert response.status_code == 404
 
     assert_http_error(response.json())

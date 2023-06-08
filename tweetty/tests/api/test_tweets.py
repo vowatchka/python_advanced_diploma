@@ -86,7 +86,6 @@ async def test_truncate_tweet_text(client: AsyncClient, test_user: db_models.Use
         json={"tweet_data": "t" * (tweet_max_length + 10)},
         headers={"api-key": test_user.api_key}
     )
-    print(response.text)
     assert response.status_code == 201
 
     tweet_id = response.json()["tweet_id"]
