@@ -27,6 +27,7 @@
 * Python >= 3.9
 * FastAPI
 * SQLAlchemy
+* Alembic
 * PostgreSQL
 * Docker
 
@@ -58,6 +59,9 @@
    ```shell
    make up
    ```
+
+## Документация Swagger
+При работе через VM Vagrant документация доступна Swagger доступна по адресу [http://192.168.1.33:5000/docs](http://192.168.1.33:5000/docs).
 
 ## Миграции
 ```shell
