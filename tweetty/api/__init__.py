@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 
+import tweetty
+
 from .exception_handlers import common_exception_handler
 from .models import HTTPErrorModel
 from .routers import api_router
@@ -9,14 +11,14 @@ def create_api() -> FastAPI:
     api = FastAPI(
         title="Twetty API",
         description="Корпоративный сервис микроблогов",
-        version="1.0.0",
+        version=tweetty.__version__,
         contact={
-            "name": "Владимир Салтыков",
+            "name": tweetty.__author__,
             "url": "https://github.com/vowatchka",
-            "email": "vowatchka@mail.ru"
+            "email": tweetty.__email__,
         },
         license_info={
-            "name": "MIT"
+            "name": tweetty.__license__,
         },
         exception_handlers={
             Exception: common_exception_handler,
