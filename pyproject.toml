@@ -38,4 +38,5 @@ markers=[
     "delete_likes: test delele likes",
     "follows: test work with follows",
     "post_follows: test follow to user",
+    "delete_follows: test unfollow from user",
 ]

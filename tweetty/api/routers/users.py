@@ -98,3 +98,26 @@ async def follow_user(
         await db_session.commit()
 
     return ResultModel(result=True)
+
+
+@users_router.delete(
+    "/{user_id}/follow",
+    summary="Отписаться от пользователя",
+    status_code=200,
+    response_model=ResultModel,
+    response_description="User Unfollowed",
+    responses={
+        404: {"model": HTTPErrorModel, "description": "User Not Found"},
+    },
+    tags=follows_tags,
+)
+async def unfollow_user(
+    db_session: Annotated[AsyncSession, Depends(models.db_session)],
+    following: Annotated[Optional[models.Follower], Depends(get_following_or_none)],
+) -> ResultModel:
+    """Отписаться от пользователя."""
+    if following is not None:
+        await db_session.delete(following)
+        await db_session.commit()
+
+    return ResultModel(result=True)
