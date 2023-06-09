@@ -4,6 +4,7 @@ from .models import ErrorModel
 
 # описания кодов HTTP
 HTTP_403_FORBIDDEN_DESC = "Forbidden"
+HTTP_406_NOT_ACCEPTABLE_DESC = "Not Acceptable"
 HTTP_500_INTERNAL_SERVER_ERROR_DESC = "Internal Server Error"
 
 
@@ -35,8 +36,13 @@ class ForbiddenError(Exception):
     pass
 
 
-class TweetNotFound(Exception):
-    """Ошибка, возникающая, когда твита не существует."""
+class NotFoundError(Exception):
+    """Ошибка, возникающая, когда данные, запрошенные в БД, не найдены."""
+    pass
+
+
+class NotAcceptableError(Exception):
+    """Ошибка, возникающая, когда на какие-то действия достаточно прав, но они недопустимы."""
     pass
 
 

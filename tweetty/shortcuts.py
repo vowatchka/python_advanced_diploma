@@ -3,7 +3,7 @@ from typing import Any, Optional
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .api.exceptions import TweetNotFound, http_exception
+from .api.exceptions import NotFoundError, http_exception
 from .typing import SAModelObject
 
 
@@ -28,6 +28,6 @@ async def get_object_or_404(db_session: AsyncSession,
     if obj is None:
         if message_404 is None:
             message_404 = "not found"
-        raise http_exception(TweetNotFound(message_404), status_code=404)
+        raise http_exception(NotFoundError(message_404), status_code=404)
 
     return obj
