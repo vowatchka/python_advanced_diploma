@@ -2,6 +2,17 @@
 
 <!--next-version-placeholder-->
 
+## v0.7.0 (2023-06-09)
+
+### Feature
+
+* #10: add route and logic for user followings ([`be53b5b`](https://gitlab.skillbox.ru/vladimir_saltykov/python_advanced_diploma/-/commit/be53b5b3d0d32247f14951d66f74a2f2475c9b8b))
+
+### Documentation
+
+* Show actual API version in Swagger ([`bbb57bd`](https://gitlab.skillbox.ru/vladimir_saltykov/python_advanced_diploma/-/commit/bbb57bd857587ba7bf404b4e4b94b8f7ccbaf183))
+* Update README.md ([`9650171`](https://gitlab.skillbox.ru/vladimir_saltykov/python_advanced_diploma/-/commit/96501717762be305f2a3bacba7f23dfa7946112f))
+
 ## v0.6.0 (2023-06-08)
 
 ### Feature
