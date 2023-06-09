@@ -101,6 +101,13 @@ class APITestClient:
             headers=self.api_key_header(api_key),
         )
 
+    async def unfollow(self, user_id: int, api_key: str) -> Response:
+        """Отписаться от пользователя."""
+        return await self._client.delete(
+            self.follow_route(user_id),
+            headers=self.api_key_header(api_key),
+        )
+
 
 @pytest.fixture
 def api_client(client: AsyncClient):

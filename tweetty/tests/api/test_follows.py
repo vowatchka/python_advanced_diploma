@@ -21,19 +21,6 @@ async def followed_user(db_session: AsyncSession):
     yield user
 
 
-@pytest.fixture
-async def test_subscription(db_session: AsyncSession, test_user: db_models.User, followed_user: db_models.User):
-    """Тестовая подписка одного пользователя на другого."""
-    follow = db_models.Follower(
-        user_id=followed_user.id,
-        follower_id=test_user.id,
-    )
-    db_session.add(follow)
-    await db_session.commit()
-
-    yield follow
-
-
 @pytest.mark.post_follows
 @pytest.mark.parametrize(
     "api_key",
@@ -116,5 +103,98 @@ async def test_follow_self(api_client: APITestClient, test_user: db_models.User)
 async def test_follow_not_existed_user(api_client: APITestClient, test_user: db_models.User):
     """Проверка подписки на несуществующего пользователя."""
     response = await api_client.follow(100500, test_user.api_key)
+    assert response.status_code == 404
+    assert_http_error(response.json())
+
+
+@pytest.mark.delete_follows
+@pytest.mark.parametrize(
+    "api_key",
+    [
+        "",
+        "no" * 15,
+    ]
+)
+async def test_unfollow_auth(api_client: APITestClient, followed_user: db_models.User, api_key: str):
+    """Проверка авторизации для отписки от пользователя."""
+    response = await api_client.unfollow(followed_user.id, api_key)
+    assert response.status_code == 401
+    assert_http_error(response.json())
+
+
+@pytest.mark.delete_follows
+async def test_unfollow(api_client: APITestClient, test_user: db_models.User, followed_user: db_models.User,
+                        db_session: AsyncSession):
+    """Проверка отписки от другого пользователя."""
+    # создаем подписку
+    follow = db_models.Follower(
+        user_id=followed_user.id,
+        follower_id=test_user.id,
+    )
+    db_session.add(follow)
+    await db_session.commit()
+
+    response = await api_client.unfollow(followed_user.id, test_user.api_key)
+    assert response.status_code == 200
+
+    resp = response.json()
+    assert resp["result"] is True
+
+    # проверяем, что подписки нет
+    follow_qs = await db_session.execute(
+        select(db_models.Follower)
+        .where(
+            and_(
+                db_models.Follower.user_id == followed_user.id,
+                db_models.Follower.follower_id == test_user.id
+            )
+        )
+    )
+    assert len(follow_qs.scalars().all()) == 0
+
+
+@pytest.mark.delete_follows
+@pytest.mark.parametrize(
+    "follow_himself",
+    [True, False]
+)
+async def test_unfollow_again(api_client: APITestClient, test_user: db_models.User, followed_user: db_models.User,
+                              db_session: AsyncSession, follow_himself: bool):
+    """
+    Проверка отписки от другого пользователя, от которого уже отписаны.
+
+    :param follow_himself: `True`, если пользователь отписывается от себя,
+        и `False`, если пользователь отписывается от другого пользователя.
+    """
+    user = test_user if follow_himself else followed_user
+
+    if not follow_himself:
+        # создаем подписку только если подписываемся не на себя,
+        # потому что на уровне БД запрещено создавать подписки
+        # на самого себя
+        follow = db_models.Follower(
+            user_id=user.id,
+            follower_id=test_user.id,
+        )
+        db_session.add(follow)
+        await db_session.commit()
+
+    # отписываемся
+    response = await api_client.unfollow(user.id, test_user.api_key)
+    assert response.status_code == 200
+
+    # отписываемся еще раз
+    response = await api_client.unfollow(user.id, test_user.api_key)
+    # метод DELETE должен быть идемпотентным
+    assert response.status_code == 200
+
+    resp = response.json()
+    assert resp["result"] is True
+
+
+@pytest.mark.delete_follows
+async def test_unfollow_not_existed_user(api_client: APITestClient, test_user: db_models.User):
+    """Проверка отписки от несуществующего пользователя."""
+    response = await api_client.unfollow(100500, test_user.api_key)
     assert response.status_code == 404
     assert_http_error(response.json())
