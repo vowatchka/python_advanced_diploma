@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.8.1 (2023-06-09)
+
+### Fix
+
+* Fix when 404 early than 401 ([`f112206`](https://gitlab.skillbox.ru/vladimir_saltykov/python_advanced_diploma/-/commit/f112206bf795c258b1363704b3324629bbea6705))
+
 ## v0.8.0 (2023-06-09)
 
 ### Feature
