@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ...db import models
 from ...shortcuts import get_object_or_none
 from ..auth import get_authorized_user
-from ..exceptions import (HTTP_403_FORBIDDEN_DESC, HTTP_500_INTERNAL_SERVER_ERROR_DESC, ForbiddenError, TweetNotFound,
+from ..exceptions import (HTTP_403_FORBIDDEN_DESC, HTTP_500_INTERNAL_SERVER_ERROR_DESC, ForbiddenError, NotFoundError,
                           http_exception,)
 from ..models import HTTPErrorModel, NewTweetIn, NewTweetOut, ResultModel
 
@@ -39,7 +39,7 @@ async def get_tweet_or_404(tweet: Annotated[Optional[models.Tweet], Depends(get_
                            tweet_id: TweetId) -> models.Tweet:
     """Возвращает твит или возбуждает `404 Not Found`, если твита нет."""
     if tweet is None:
-        raise http_exception(TweetNotFound(f"tweet {tweet_id} doesn't exist",), status_code=404)
+        raise http_exception(NotFoundError(f"tweet {tweet_id} doesn't exist"), status_code=404)
     return tweet
 
 
