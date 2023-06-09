@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.8.0 (2023-06-09)
+
+### Feature
+
+* #11: add route and logic for user unfollowing ([`de4047a`](https://gitlab.skillbox.ru/vladimir_saltykov/python_advanced_diploma/-/commit/de4047a9b2071d88a552187a67f6197ad41a1c8e))
+
 ## v0.7.0 (2023-06-09)
 
 ### Feature
