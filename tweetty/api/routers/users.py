@@ -113,6 +113,7 @@ async def follow_user(
 )
 async def unfollow_user(
     db_session: Annotated[AsyncSession, Depends(models.db_session)],
+    auth_user: Annotated[models.User, Depends(get_authorized_user)],  # `auth_user` нужен, чтобы 401 срабатывал раньше
     following: Annotated[Optional[models.Follower], Depends(get_following_or_none)],
 ) -> ResultModel:
     """Отписаться от пользователя."""

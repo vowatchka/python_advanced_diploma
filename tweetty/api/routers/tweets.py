@@ -181,6 +181,7 @@ async def like_tweet(
 )
 async def unlike_tweet(
     db_session: Annotated[AsyncSession, Depends(models.db_session)],
+    auth_user: Annotated[models.User, Depends(get_authorized_user)],  # `auth_user` нужен, чтобы 401 срабатывал раньше
     like: Annotated[Optional[models.Like], Depends(get_like_or_none)],
 ) -> ResultModel:
     """Убрать лайк."""
