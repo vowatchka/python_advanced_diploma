@@ -35,19 +35,19 @@
 1. Поднять ВМ (на ВМ будут установлены ansible, docker и docker-compose)
    ```shell
    # On Linux
-   make vm-up-provision
+   make vm-up-provision NAME=dev
 
    # On Windows
-   vagrant up --provision
+   vagrant up dev --provision
    ```
 
 2. Подключиться к ВМ
    ```shell
    # On Linux
-   make vm-connect
+   make vm-connect NAME=dev
 
    # On Windows
-   vagrant ssh
+   vagrant ssh dev
    ```
 
 3. В терминале ВМ перейти в директорию с проектом
