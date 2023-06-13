@@ -100,7 +100,11 @@ make test
 
 1. [Одобрить регистрацию нового пользователя](http://192.168.1.34/admin/users?filter=blocked_pending_approval) из под пользователя `root`
 
-1. Войти под созданным ранее пользователем и создать новую публичную группу и новый публичный проект в ней.
+1. Войти под созданным ранее пользователем и создать новую публичную группу `python_advanced_diploma` и новый публичный проект `tweetty` в созданной группе.
+
+1. Создать ветку `master` и сделать ее дефолтной. Ветку `main` удалить. Ветка `master` нужна, потому что автоматическое версионирование настроена на эту ветку.
+
+   ![утановка ветки master как дефолтной](docs/imgs/set-master-as-default-branch.png)
 
 1. Зарегистрировать новый Gitlab Runner
    ```shell
@@ -108,6 +112,24 @@ make test
    ```
 
    ![зарегистрированный раннер](docs/imgs/registered-gitlab-runners.png)
+
+1. Создать Access Token в проекте `tweetty`. После создания токена нужно скопировать его, потому что он потребуется на следующем шаге
+
+   ![создание access token](docs/imgs/create-access-token.png)
+
+1. Создать переменную `GL_TOKEN` в переменных CI/CD и указать в качестве значения токен с предыдущего шага. Эта переменная нужна для [автоматического создания релизов](https://python-semantic-release.readthedocs.io/en/latest/#releasing-on-github-gitlab)
+
+   ![создание переменной GL_TOKEN](docs/imgs/token-variable.png)
+
+1. Добавить новый remote в свой гит
+   ```shell
+   git remote add demo http://192.168.1.34/python_advanced_diploma/tweetty.git
+   ```
+
+1. Пушить в GitLab демо-стенда можно командой
+   ```shell
+   git push -u --tags demo <local_branch>:<remote_branch>
+   ```
 
 ## Полезные материалы
 * [Коды статусов HTTP](https://ru.wikipedia.org/wiki/%D0%A1%D0%BF%D0%B8%D1%81%D0%BE%D0%BA_%D0%BA%D0%BE%D0%B4%D0%BE%D0%B2_%D1%81%D0%BE%D1%81%D1%82%D0%BE%D1%8F%D0%BD%D0%B8%D1%8F_HTTP)
