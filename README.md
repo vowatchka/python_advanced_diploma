@@ -102,6 +102,13 @@ make test
 
 1. Войти под созданным ранее пользователем и создать новую публичную группу и новый публичный проект в ней.
 
+1. Зарегистрировать новый Gitlab Runner
+   ```shell
+   vagrant ssh gitlab -c "docker run --rm -it -v /srv/gitlab-runner/config:/etc/gitlab-runner gitlab/gitlab-runner register"
+   ```
+
+   ![зарегистрированный раннер](docs/imgs/registered-gitlab-runners.png)
+
 ## Полезные материалы
 * [Коды статусов HTTP](https://ru.wikipedia.org/wiki/%D0%A1%D0%BF%D0%B8%D1%81%D0%BE%D0%BA_%D0%BA%D0%BE%D0%B4%D0%BE%D0%B2_%D1%81%D0%BE%D1%81%D1%82%D0%BE%D1%8F%D0%BD%D0%B8%D1%8F_HTTP)
 * [pyproject.toml](https://python-poetry.org/docs/pyproject/)

@@ -10,44 +10,5 @@
         update_cache: yes
 
     - include_tasks: ./install-docker.yml
-
-    # see at https://docs.gitlab.com/ee/install/docker.html#set-up-the-volumes-location
-    - name: Exporting GITLAB_HOME to env
-      lineinfile:
-        dest: "/etc/environment"
-        state: present
-        regexp: "^GITLAB_HOME="
-        line: "GITLAB_HOME=/home/vagrant/gitlab"
-
-    - name: Install docker-py
-      pip:
-        name:
-          - docker
-
-    # see at https://docs.gitlab.com/ee/install/docker.html#install-gitlab-using-docker-engine
-    - name: Run gitlab container
-      community.docker.docker_container:
-        image: "gitlab/gitlab-ee:latest"
-        name: gitlab
-        detach: true
-        hostname: "gitlab.example.com"
-        ports:
-          - "443:443"
-          - "80:80"
-          - "2222:22"
-        restart_policy: always
-        volumes:
-          - "{{ lookup('env', 'GITLAB_HOME') }}/config:/etc/gitlab"
-          - "{{ lookup('env', 'GITLAB_HOME') }}/logs:/var/log/gitlab"
-          - "{{ lookup('env', 'GITLAB_HOME') }}/data:/var/opt/gitlab"
-        shm_size: 256m
-
-    - name: Get gitlab root password
-      community.docker.docker_container_exec:
-        container: gitlab
-        command: grep 'Password:' /etc/gitlab/initial_root_password
-      register: gitlab_exec_result
-
-    - name: Show gitlab root password
-      debug:
-        msg: "{{ gitlab_exec_result.stdout }}"
+    - include_tasks: ./install-gitlab.yml
+    - include_tasks: ./install-gitlab-runner.yml
