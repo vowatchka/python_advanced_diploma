@@ -1,0 +1,8 @@
+- name: Provision backend
+  hosts: all
+  gather_facts: no
+  become: true
+  become_method: sudo
+
+  tasks:
+    - include_tasks: ./install-dokku.yml
