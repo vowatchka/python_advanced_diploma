@@ -40,4 +40,18 @@ Vagrant.configure("2") do |config|
       ansible.playbook = "./ansible_scripts/provision/provision-gitlab.yml"
     end
   end
+
+  config.vm.define "backend" do |backend|
+    backend.vm.hostname = "backend"
+    backend.vm.network "private_network", ip: "192.168.1.35"
+
+    backend.vm.provider "virtualbox" do |v|
+      v.memory = 1024
+      v.cpus = 1
+    end
+
+    backend.vm.provision "ansible_local" do |ansible|
+      ansible.playbook = "./ansible_scripts/provision/provision-backend.yml"
+    end
+  end
 end
