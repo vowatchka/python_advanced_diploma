@@ -6,3 +6,4 @@
 
   tasks:
     - include_tasks: ./install-dokku.yml
+    - include_tasks: ./create-tweetty-app.yml
