@@ -92,20 +92,20 @@ make test
    vagrant up
    ```
 
+1. Перейти в GitLab [http://192.168.1.34/](http://192.168.1.34/) и зарегистрировать нового пользователя
+
 1. Узнать пароль пользователя `root` от GitLab
    ```shell
    vagrant ssh gitlab -c "docker exec gitlab grep 'Password:' /etc/gitlab/initial_root_password"
    ```
 
-1. Перейти в GitLab [http://192.168.1.34/](http://192.168.1.34/) и зарегистрировать нового пользователя
-
 1. [Одобрить регистрацию нового пользователя](http://192.168.1.34/admin/users?filter=blocked_pending_approval) из под пользователя `root`
 
+1. Сделать дефолтной веткой ветку `master`. Ветка `master` нужна, потому что автоматическое версионирование настроено на эту ветку.
+
+   ![дефолтная ветка master](docs/imgs/set-master-as-default-branch.png)
+
 1. Войти под созданным ранее пользователем и создать новую публичную группу `python_advanced_diploma` и новый публичный проект `tweetty` в созданной группе. На самом деле имена группы и проекта не важны, но с целью упрощения последующих команд в них используются именно эти имена.
-
-1. Создать ветку `master` и сделать ее дефолтной. Ветку `main` удалить. Ветка `master` нужна, потому что автоматическое версионирование настроено на эту ветку.
-
-   ![утановка ветки master как дефолтной](docs/imgs/set-master-as-default-branch.png)
 
 1. Зарегистрировать новый Gitlab Runner
    ```shell
@@ -133,7 +133,7 @@ make test
 
 1. После всех настроек должна появиться возможность деплоя из гит-репозитория. Следующей командой можно проверить доступность виртуальной машины GitLab через платформу Dokku, которая настроена на сервере приложения
    ```shell
-   vagrant ssh backend -c "dokku git:sync tweetty git@192.168.1.34:python_advanced_diploma/tweetty.git"
+   vagrant ssh backend -c "dokku git:sync tweetty git@192.168.1.34:python_advanced_diploma/tweetty.git master"
    ```
 
    В результате должны увидеть на консоли что-то похожее
