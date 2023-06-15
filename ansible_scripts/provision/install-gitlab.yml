@@ -28,13 +28,3 @@
       - "{{ lookup('env', 'GITLAB_HOME') }}/logs:/var/log/gitlab"
       - "{{ lookup('env', 'GITLAB_HOME') }}/data:/var/opt/gitlab"
     shm_size: 256m
-
-- name: Get gitlab root password
-  community.docker.docker_container_exec:
-    container: gitlab
-    command: grep 'Password:' /etc/gitlab/initial_root_password
-  register: gitlab_exec_result
-
-- name: Show gitlab root password
-  debug:
-    msg: "{{ gitlab_exec_result.stdout }}"
