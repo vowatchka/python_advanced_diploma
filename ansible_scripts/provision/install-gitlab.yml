@@ -28,3 +28,14 @@
       - "{{ lookup('env', 'GITLAB_HOME') }}/logs:/var/log/gitlab"
       - "{{ lookup('env', 'GITLAB_HOME') }}/data:/var/opt/gitlab"
     shm_size: 256m
+
+# see https://docs.gitlab.com/ee/ci/ssh_keys/#how-it-works
+- name: Generate SSH key pairs
+  vars:
+    gitlab_id_rsa_file: /home/vagrant/.ssh/gitlab_id_ed25519
+  community.crypto.openssh_keypair:
+    path: "{{ gitlab_id_rsa_file }}"
+    comment: "gitlab_key"
+    type: "ed25519"
+    owner: vagrant
+    group: vagrant

@@ -40,6 +40,20 @@
     dokku_version.stdout is not defined
     or dokku_version.stdout == ""
 
+- name: Do docker postinstall steps
+  block:
+    - name: Add docker group
+      shell: groupadd docker
+      ignore_errors: yes
+
+    - name: Add user to docker group
+      shell: usermod -aG docker root && usermod -aG docker vagrant
+      ignore_errors: yes
+
+    - name: Activate the changes to group
+      shell: newgrp docker
+      ignore_errors: yes
+
 - name: Get dokku git public key
   shell: dokku git:public-key
   register: dokku_git_public_key
