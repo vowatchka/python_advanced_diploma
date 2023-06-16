@@ -131,7 +131,7 @@ make test
 
    ![добавление ssh ключа в gitlab](docs/imgs/set-ssh-key-on-gitlab.png)
 
-1. После всех настроек должна появиться возможность деплоя из гит-репозитория. Следующей командой можно проверить доступность виртуальной машины GitLab через платформу Dokku, которая настроена на сервере приложения
+1. После всех настроек должна появиться возможность синхронизации с гит-репозиторием. Следующей командой можно проверить доступность ВМ `gitlab` через платформу Dokku, которая настроена на ВМ `backend`
    ```shell
    vagrant ssh backend -c "dokku git:sync tweetty git@192.168.1.34:python_advanced_diploma/tweetty.git master"
    ```
@@ -140,6 +140,32 @@ make test
    ```shell
    -----> Cloning tweetty from git@192.168.1.34:python_advanced_diploma/tweetty.git#
           Detected branch, setting deploy-branch to master
+   ```
+
+### Настройка деплоя из GitLab через SSH
+Подробно требования по настройке описана в [документации GitLab](https://docs.gitlab.com/ee/ci/ssh_keys/#how-it-works).
+
+1. Получить содержимое приватного ключа, сгенерированного на ВМ `gitlab`
+   ```shell
+   vagrant ssh gitlab -c "cat /home/vagrant/.ssh/gitlab_id_ed25519"
+   ```
+
+1. Создать переменную `SSH_PRIVATE_KEY` с типом `File` в проекте `tweetty` и поместить в нее содержимое приватного ключа, полученное на предыдущем шаге.
+
+   ![создание переменной SSH_PRIVATE_KEY](docs/imgs/ssh-private-key-variable.png)
+
+   **Очень важно, чтобы значение переменной содержало в конце одну пустую строку**
+
+   ![пустая строка в значении переменной SSH_PRIVATE_KEY](docs/imgs/required-empty-string.png)
+
+1. Получить значение публичного ключа, сгенерированного на ВМ `gitlab`
+   ```shell
+   vagrant ssh gitlab -c "cat /home/vagrant/.ssh/gitlab_id_ed25519.pub"
+   ```
+
+1. Добавить публичный ключ в список авторизованных на ВМ `backend`
+   ```shell
+   vagrant ssh backend -c "echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMPENs+2RCvgZiTbH43jgD3RNIgYLDudV25yiJx1UFih gitlab_key' | sudo tee --append /home/dokku/.ssh/authorized_keys"
    ```
 
 ### Публикация изменений в репозиторий демо-стенда
@@ -171,3 +197,8 @@ make test
 * [FastAPI: Обработка ошибок](https://fastapi.tiangolo.com/tutorial/handling-errors/)
 * [HTTPX: Передача файлов в запросе AsyncClient](https://stackoverflow.com/a/72104365)
 * [Pytest: Использование фикстур из различных модулей](https://gist.github.com/peterhurford/09f7dcda0ab04b95c026c60fa49c2a68)
+* [GitLab: Установка GitLab из docker-образа](https://docs.gitlab.com/ee/install/docker.html#install-gitlab-using-docker-engine)
+* [GitLab: Установка gitlab-runner](https://docs.gitlab.com/16.0/runner/install/docker.html#option-1-use-local-system-volume-mounts-to-start-the-runner-container)
+* [GitLab: Использование SSH-ключей в CI/CD](https://docs.gitlab.com/ee/ci/ssh_keys/#how-it-works)
+* [Dokku: Установка](https://dokku.com/docs/getting-started/installation/#1-install-dokku)
+* [Dokku: Установка из репозитория](https://dokku.com/docs/deployment/methods/git/#initializing-from-private-repositories)
