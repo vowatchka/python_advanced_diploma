@@ -1,10 +1,5 @@
 from urllib.parse import urlparse
 
-from environs import Env
-
-env = Env()
-POSTGRES_URL = env("POSTGRES_URL")
-
 
 def make_async_postgres_url(pg_uri: str) -> str:
     """

@@ -1,14 +1,16 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 from sqlalchemy import CheckConstraint, Column, DateTime, ForeignKey, Integer, String, UniqueConstraint, func
 from sqlalchemy.ext.associationproxy import AssociationProxy, association_proxy
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import Mapped, declarative_base, relationship, sessionmaker
 
-from .pg import POSTGRES_URL, make_async_postgres_url
+from tweetty.settings import POSTGRES_URL
+
+from .pg import make_async_postgres_url
 
 engine = create_async_engine(make_async_postgres_url(POSTGRES_URL))
 Session = sessionmaker(expire_on_commit=False, class_=AsyncSession)
@@ -37,14 +39,14 @@ class User(Base):
         doc="Никнейм",
         comment="Никнейм",
     )
-    first_name: Mapped[Optional[str]] = Column(
+    first_name: Mapped[str | None] = Column(
         String,
         nullable=True,
         default=None,
         doc="Имя",
         comment="Имя",
     )
-    last_name: Mapped[Optional[str]] = Column(
+    last_name: Mapped[str | None] = Column(
         String,
         nullable=True,
         default=None,
@@ -152,7 +154,7 @@ class TweetMedia(Base):
         doc="Дата-время загрузки файла",
         comment="Дата-время загрузки файла",
     )
-    tweet_id: Mapped[Optional[int]] = Column(
+    tweet_id: Mapped[int | None] = Column(
         Integer,
         ForeignKey("tweet.id", ondelete="CASCADE"),
         nullable=True,

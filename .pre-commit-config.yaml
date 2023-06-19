@@ -18,12 +18,13 @@ repos:
     hooks:
       - id: isort
         name: isort (python)
-        args: [ "--color" ]
+        args: ["--color"]
   - repo: https://github.com/pycqa/flake8
     rev: 6.0.0
     hooks:
       - id: flake8
-        args: ["-v", "--color=always"]
+        exclude: "migrations"
+        args: ["-v", "--color", "always"]
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.2.0
     hooks:

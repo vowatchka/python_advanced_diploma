@@ -8,6 +8,7 @@ from sqlalchemy.orm import sessionmaker
 from ..api import create_api
 from ..api.routers import medias as media_routers
 from ..db import models, pg
+from ..settings import POSTGRES_URL
 from .api import api_client  # noqa: F401
 from .api.test_medias import generate_mediafile_name, test_file, test_file_uploaded_path  # noqa: F401
 from .api.test_tweets import test_tweet  # noqa: F401
@@ -22,7 +23,7 @@ def anyio_backend():
 
 @pytest.fixture(scope="session")
 async def engine(anyio_backend):
-    test_pg_uri = pg.change_database_name(pg.POSTGRES_URL, "test")
+    test_pg_uri = pg.change_database_name(POSTGRES_URL, "test")
     async_test_pg_uri = pg.make_async_postgres_url(test_pg_uri)
 
     # создаем тестовую БД

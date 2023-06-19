@@ -2,14 +2,13 @@ import os
 import sys
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
-
 from alembic import context
+from sqlalchemy import engine_from_config, pool
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
-from db import models, pg
+from db import models
+from settings import POSTGRES_URL
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -61,7 +60,7 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
-    config.set_main_option("sqlalchemy.url", pg.POSTGRES_URL)
+    config.set_main_option("sqlalchemy.url", POSTGRES_URL)
 
     connectable = engine_from_config(
         config.get_section(config.config_ini_section, {}),
