@@ -4,6 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .api.exceptions import NotFoundError, http_exception
+from .settings import STATIC_DIR, STATIC_URL
 from .typing import SAModelObject
 
 
@@ -31,3 +32,10 @@ async def get_object_or_404(db_session: AsyncSession,
         raise http_exception(NotFoundError(message_404), status_code=404)
 
     return obj
+
+
+def static_uri(path: str) -> str:
+    """Преобразует переданный путь `path` в URI для статических файлов."""
+    if path.startswith(STATIC_DIR):
+        return path.replace(STATIC_DIR, STATIC_URL, 1)
+    return path

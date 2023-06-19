@@ -1,6 +1,8 @@
 from fastapi.params import File
 from pydantic import BaseModel, Field, constr
 
+from ..settings import STATIC_DIR
+
 
 class ResultModel(BaseModel):
     """Модель результата."""
@@ -91,7 +93,7 @@ class NewMediaIn(File):
     """Модель запроса нового медиа."""
 
     class MediaConfig:
-        upload_path = "/app/tweetty/static/upload"
+        upload_path = STATIC_DIR + "/upload"
         upload_path_template = upload_path + "/{nickname}/medias/{filename}"
 
     def __init__(self):

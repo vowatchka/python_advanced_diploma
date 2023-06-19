@@ -1,7 +1,9 @@
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 
 import tweetty
 
+from ..settings import DEBUG, STATIC_DIR, STATIC_URL
 from .exception_handlers import common_exception_handler
 from .models import HTTPErrorModel
 from .routers import api_router
@@ -29,5 +31,8 @@ def create_api() -> FastAPI:
     )
 
     api.include_router(api_router)
+
+    if DEBUG:
+        api.mount(STATIC_URL, StaticFiles(directory=STATIC_DIR), name="static")
 
     return api
