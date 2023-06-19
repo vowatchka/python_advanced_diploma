@@ -100,6 +100,7 @@ async def publish_new_media(
                 rel_uri=str(media_file),
             )
             db_session.add(new_media)
+            await db_session.commit()
     except Exception as ex:
         # удаляем загруженный файл в случае проблем
         if media_file.exists():

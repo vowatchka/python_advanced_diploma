@@ -86,6 +86,8 @@ async def publish_new_tweet(
             .values(tweet_id=new_tweet.id)
         )
 
+        await db_session.commit()
+
     return NewTweetOut(result=True, tweet_id=new_tweet.id)
 
 
