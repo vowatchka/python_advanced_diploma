@@ -1,0 +1,8 @@
+- name: Provision Null
+  hosts: all
+  gather_facts: no
+
+  tasks:
+    - name: Debug
+      debug:
+        msg: "Debug"

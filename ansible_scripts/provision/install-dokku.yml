@@ -1,0 +1,97 @@
+- name: Install packages
+  apt:
+    pkg:
+      - wget
+    update_cache: yes
+
+- name: Install python packages
+  pip:
+    name:
+      - paramiko
+      - stormssh
+    extra_args: "--ignore-installed"
+
+- name: Get dokku version
+  shell: dokku --version
+  register: dokku_version
+  ignore_errors: yes
+
+- name: Install dokku
+  vars:
+    dokku_installation_version: "v0.30.7"
+    dokku_installation_script: /tmp/bootstrap.sh
+  block:
+    # https://dokku.com/docs/getting-started/installation/#1-install-dokku
+    - name: Install dokku
+      shell: |
+        wget -N -O {{ dokku_installation_script }} https://dokku.com/install/{{ dokku_installation_version }}/bootstrap.sh
+        DOKKU_TAG={{ dokku_installation_version }} bash {{ dokku_installation_script }}
+      become: yes
+
+    # https://dokku.com/docs/getting-started/installation/#2-setup-ssh-key-and-virtualhost-settings
+    - name: Setup dokku SSH key
+      shell: cat /home/vagrant/.ssh/authorized_keys | dokku ssh-keys:add vagrant
+  always:
+    - name: Remove dokku instalation script
+      file:
+        path: "{{ dokku_installation_script }}"
+        state: absent
+  when: >
+    dokku_version.stdout is not defined
+    or dokku_version.stdout == ""
+
+- name: Do docker postinstall steps
+  block:
+    - name: Add docker group
+      shell: groupadd docker
+      ignore_errors: yes
+
+    - name: Add user to docker group
+      shell: usermod -aG docker root && usermod -aG docker vagrant
+      ignore_errors: yes
+
+    - name: Activate the changes to group
+      shell: newgrp docker
+      ignore_errors: yes
+
+- name: Get dokku git public key
+  shell: dokku git:public-key
+  register: dokku_git_public_key
+  ignore_errors: yes
+
+# https://dokku.com/docs/deployment/methods/git/#initializing-from-private-repositories
+- name: Generate dokku git pubic key
+  vars:
+    remote_host: 192.168.1.34
+    remote_port: 2222
+    dokku_id_rsa_file: /home/dokku/.ssh/id_rsa
+  block:
+    - name: Generate SSH key pairs
+      community.crypto.openssh_keypair:
+        path: "{{ dokku_id_rsa_file }}"
+        comment: "dokku_git_key"
+        type: "ed25519"
+        owner: dokku
+        group: dokku
+
+    - name: Add generated key to ssh config
+      community.general.ssh_config:
+        host: "{{ remote_host }}"
+        identity_file: "{{ dokku_id_rsa_file }}"
+        port: "{{ remote_port }}"
+        user: dokku
+        group: dokku
+
+    - name: Add host to dokku known_hosts
+      shell: dokku git:allow-host {{ remote_host }}
+  when: >
+    dokku_git_public_key.stdout is not defined
+    or dokku_git_public_key.stdout == ""
+
+- name: Dokku must see git public key now
+  shell: dokku git:public-key
+  register: dokku_git_public_key
+
+- name: Show dokku git public key
+  debug:
+    msg: "{{ dokku_git_public_key.stdout }}"

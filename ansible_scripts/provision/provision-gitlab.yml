@@ -1,0 +1,14 @@
+- name: Provision Gitlab
+  hosts: all
+  gather_facts: no
+  become: true
+  become_method: sudo
+
+  tasks:
+    - name: Update packages
+      apt:
+        update_cache: yes
+
+    - include_tasks: ./install-docker.yml
+    - include_tasks: ./install-gitlab.yml
+    - include_tasks: ./install-gitlab-runner.yml

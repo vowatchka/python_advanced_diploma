@@ -7,24 +7,24 @@ help:
 
 ##@ Vagrant
 .PHONY: vm-up
-vm-up: # starts the vagrant machine
-	vagrant up
+vm-up: # starts the vagrant machine. Use NAME for set VM name
+	vagrant up $(NAME)
 
 .PHONY: vm-down
-vm-down: # stops the vagrant machine
-	vagrant halt
+vm-down: # stops the vagrant machine. Use NAME for set VM name
+	vagrant halt $(NAME)
 
 .PHONY: vm-provision
-vm-provision: # provisions the vagrant machine
-	vagrant provision
+vm-provision: # provisions the vagrant machine. Use NAME for set VM name
+	vagrant provision $(NAME)
 
 .PHONY: up-provision
-vm-up-provision: # starts and provisions the vagrant machine
-	vagrant up --provision
+vm-up-provision: # starts and provisions the vagrant machine. Use NAME for set VM name
+	vagrant up $(NAME) --provision
 
 .PHONY: vm-connect
-vm-connect: # connects to machine via SSH
-	vagrant ssh
+vm-connect: # connects to machine via SSH. Use NAME for set VM name
+	vagrant ssh $(NAME)
 
 
 ##@ Docker Compose
@@ -54,7 +54,7 @@ isort: # run python isort module
 
 .PHONY: migrate
 migrate: # apply migrations
-	docker-compose exec api alembic upgrade head
+	docker-compose exec api /bin/bash -c "cd ./tweetty && alembic upgrade head"
 
 .PHONY: app-logs
 app-logs: # show application logs. Use ARGS for additional arguments

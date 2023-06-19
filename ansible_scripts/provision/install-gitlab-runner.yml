@@ -1,0 +1,10 @@
+# https://docs.gitlab.com/16.0/runner/install/docker.html#option-1-use-local-system-volume-mounts-to-start-the-runner-container
+- name: Install Gitlab Runner
+  community.docker.docker_container:
+    image: "gitlab/gitlab-runner:latest"
+    name: "gitlab-runner"
+    detach: true
+    restart_policy: always
+    volumes:
+      - "/srv/gitlab-runner/config:/etc/gitlab-runner"
+      - "/var/run/docker.sock:/var/run/docker.sock"
