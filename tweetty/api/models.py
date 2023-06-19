@@ -1,7 +1,12 @@
+from typing import Any
+
 from fastapi.params import File
 from pydantic import BaseModel, Field, constr
+from pydantic.utils import GetterDict
 
+from ..db import models as db_models
 from ..settings import STATIC_DIR
+from .static import static_uri
 
 
 class ResultModel(BaseModel):
@@ -121,6 +126,118 @@ class NewMediaOut(ResultModel):
     )
 
 
-class TweetListModel(ResultModel):
+class UserOut(BaseModel):
+    """Модель пользователя."""
+
+    id: int = Field(
+        ...,
+        title="Id автора твита",
+        description="Id автора твита",
+    )
+    nickname: str = Field(
+        ...,
+        title="Имя автора твита",
+        description="Имя автора твита",
+        alias="name",
+    )
+
+    class Config:
+        orm_mode = True
+        allow_population_by_field_name = True
+
+
+class TweetGetter(GetterDict):
+    """
+    Класс `TweetGetter` определяет, как сделать `tweetty.db.models.Tweet`
+    похожим на `dict`.
+    """
+
+    def get(self, key: Any, default: Any = None) -> Any:
+        value = super().get(key, default=default)
+
+        if isinstance(self._obj, db_models.Tweet):
+            if key == "medias":
+                return [static_uri(media.rel_uri) for media in self._obj.medias]
+            elif key == "likes":
+                return [
+                    UserOut(
+                        id=user.id,
+                        nickname=user.nickname,
+                    )
+                    for user in self._obj.liked_by_users
+                ]
+
+        return value
+
+
+class TweetOut(BaseModel):
+    """Модель твита."""
+
+    id: int = Field(
+        ...,
+        title="Id твита",
+        description="Id твита",
+    )
+    content: str = Field(
+        ...,
+        title="Содержимое твита",
+        description="Содержимое твита",
+    )
+    user: UserOut = Field(
+        ...,
+        title="Автор твита",
+        description="Автор твита",
+        alias="author",
+        exclude={"followers", "followings"},
+    )
+    medias: list[str] = Field(
+        list(),
+        title="Список медиа",
+        description="Список медиа, прикрепленных к твиту",
+        alias="attachments",
+    )
+    likes: list[UserOut] = Field(
+        list(),
+        title="Лайки",
+        description="Лайки",
+        exclude={"__all__": {"followers", "followings"}},
+    )
+
+    class Config:
+        orm_mode = True
+        allow_population_by_field_name = True
+        getter_dict = TweetGetter
+
+
+class TweetListOut(ResultModel):
     """Модель списка твитов."""
-    pass
+
+    tweets: list[TweetOut] = Field(
+        list(),
+        title="Список твитов",
+        description="Список твитов пользователя",
+    )
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "result": True,
+                "tweets": [
+                    {
+                        "id": 0,
+                        "content": "string",
+                        "author": {
+                            "id": 0,
+                            "name": "string",
+                        },
+                        "attachments": ["string"],
+                        "likes": [
+                            {
+                                "id": 0,
+                                "name": "string",
+                            },
+                        ],
+                    },
+                ],
+            },
+        }

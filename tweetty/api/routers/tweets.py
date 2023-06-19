@@ -1,17 +1,18 @@
 import os
 from pathlib import Path as OsPath
-from typing import Annotated, Optional
+from typing import Annotated, Optional, Sequence
 
 from fastapi import APIRouter, Depends, Path, Response
-from sqlalchemy import and_, update
+from sqlalchemy import and_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from ...db import models
 from ...shortcuts import get_object_or_none
 from ..auth import get_authorized_user
 from ..exceptions import (HTTP_403_FORBIDDEN_DESC, HTTP_500_INTERNAL_SERVER_ERROR_DESC, ForbiddenError, NotFoundError,
                           http_exception,)
-from ..models import HTTPErrorModel, NewTweetIn, NewTweetOut, ResultModel, TweetListModel
+from ..models import HTTPErrorModel, NewTweetIn, NewTweetOut, ResultModel, TweetListOut
 
 tweets_router = APIRouter(
     prefix="/tweets",
@@ -200,13 +201,34 @@ async def unlike_tweet(
     "",
     summary="Получить ленту твитов пользователя",
     status_code=200,
-    response_model=TweetListModel,
+    response_model=TweetListOut,
     response_description="Success",
     tags=tweets_tags,
 )
 async def get_tweets(
     db_session: Annotated[AsyncSession, Depends(models.db_session)],
     auth_user: Annotated[models.User, Depends(get_authorized_user)]
-) -> TweetListModel:
+) -> TweetListOut:
     """Получить ленту твитов пользователя."""
-    return TweetListModel(result=True)
+    await db_session.refresh(auth_user, attribute_names=["followings"])
+
+    user_ids = [auth_user.id]
+    user_ids.extend([followed_user.id for followed_user in auth_user.followings])
+
+    tweets_qs = await db_session.execute(
+        select(models.Tweet)
+        .where(
+            models.Tweet.user_id.in_(user_ids),
+        )
+        .options(
+            selectinload(models.Tweet.medias),
+            selectinload(models.Tweet.user),
+            selectinload(models.Tweet.likes)
+        )
+    )
+    tweets: Sequence[models.Tweet] = tweets_qs.scalars().all()
+
+    return TweetListOut(
+        result=True,
+        tweets=tweets,
+    )

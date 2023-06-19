@@ -254,3 +254,47 @@ async def test_get_tweets_auth(api_client: APITestClient, api_key: str):
     response = await api_client.get_tweets(api_key)
     assert response.status_code == 401
     assert_http_error(response.json())
+
+
+@pytest.mark.get_tweets
+async def test_get_tweets_without_any_tweet(api_client: APITestClient, test_user: db_models.User,
+                                            db_session: AsyncSession):
+    """Проверка получения пустового списка твитов при отсутствии твитов у пользователя."""
+    response = await api_client.get_tweets(test_user.api_key)
+    assert response.status_code == 200
+
+    resp = response.json()
+    assert resp["result"] is True
+    assert isinstance(resp["tweets"], list)
+    assert len(resp["tweets"]) == 0
+
+
+@pytest.mark.get_tweets
+async def test_get_own_tweets(api_client: APITestClient, test_user: db_models.User, db_session: AsyncSession):
+    """Проверка получения собственных твитов пользователя."""
+    tweets = [
+        db_models.Tweet(content=f"test{i}", user_id=test_user.id)
+        for i in range(3)
+    ]
+    db_session.add_all(tweets)
+    await db_session.commit()
+
+    response = await api_client.get_tweets(test_user.api_key)
+    assert response.status_code == 200
+
+    resp = response.json()
+    assert resp["result"] is True
+    assert isinstance(resp["tweets"], list)
+    assert len(resp["tweets"]) == len(tweets)
+
+    for tweet in resp["tweets"]:
+        assert tweet["id"] is not None
+        assert isinstance(tweet["content"], str)
+        assert tweet["content"] is not None
+        assert isinstance(tweet["author"], dict)
+        assert tweet["author"]["id"] == test_user.id
+        assert tweet["author"]["name"] == test_user.nickname
+        assert isinstance(tweet["attachments"], list)
+        assert len(tweet["attachments"]) == 0
+        assert isinstance(tweet["likes"], list)
+        assert len(tweet["likes"]) == 0
