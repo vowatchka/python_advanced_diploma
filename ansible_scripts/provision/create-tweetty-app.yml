@@ -17,13 +17,18 @@
       shell: dokku postgres:create {{ app_name }}
       ignore_errors: yes
 
+    # https://stackoverflow.com/a/66794960
+    # https://github.com/dokku/dokku-postgres#link-the-postgres-service-to-the-app
+    - name: Change old postgres protocol to postgresql
+      shell: dokku config:set --no-restart {{ app_name }} POSTGRES_DATABASE_SCHEME=postgresql
+
     - name: Link postgres service with tweetty app
       shell: dokku postgres:link {{ app_name }} {{ app_name }}
       ignore_errors: yes
 
     - name: Set POSTGRES_URL for tweetty app
       shell: |
-        DATABASE_URL=$(dokku config:get {{ app_name }} DATABASE_URL)
+        DATABASE_URL=$(dokku config:get {{ app_name }} DOKKU_POSTGRES_AQUA_URL)
         dokku config:set --no-restart {{ app_name }} POSTGRES_URL=$DATABASE_URL
 
     - name: Set tweetty public port
@@ -33,3 +38,28 @@
       shell: |
         dokku storage:mount {{ app_name }} /home/dokku/{{ app_name }}/static:/app/tweetty/static
       ignore_errors: yes
+
+    # https://dokku.com/docs/advanced-usage/deployment-tasks/?h=app.json#changing-the-appjson-location
+    - name: Change app.json location
+      shell: dokku app-json:set {{ app_name }} appjson-path conf/app.json
+
+    # https://dokku.com/docs/networking/proxies/nginx/?h=nginx.conf.sigil#customizing-via-configuration-files-included-by-the-default-templates
+    - name: Configure dokku nginx for tweetty app
+      vars:
+        app_nginx_conf_dir: "/home/dokku/{{ app_name }}/nginx.conf.d"
+      block:
+        - name: Create nginx.conf.d directory for dokku app
+          file:
+            path: "{{ app_nginx_conf_dir }}"
+            state: directory
+            owner: dokku
+            group: dokku
+            mode: "0755"
+
+        - name: Create nginx.conf file
+          template:
+            src: ./templates/nginx.conf.j2
+            dest: "{{ (app_nginx_conf_dir, 'nginx.conf') | path_join }}"
+            owner: dokku
+            group: dokku
+            mode: "0755"

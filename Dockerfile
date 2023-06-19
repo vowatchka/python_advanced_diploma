@@ -8,7 +8,7 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
 RUN apt-get update -y && \
-    apt-get install -y python-dev libpq-dev
+    apt-get install -y python-dev-is-python3 libpq-dev
 
 COPY ./requirements.txt ./requirements.txt
 RUN python -m pip install --upgrade pip setuptools wheel \

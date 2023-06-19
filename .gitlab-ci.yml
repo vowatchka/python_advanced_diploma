@@ -26,6 +26,8 @@ stages:
   - lint
   - test
   - release
+  - deploy
+  - rollback
 
 linting:
   stage: lint
@@ -84,3 +86,29 @@ release:
   except:
     variables:
       - $CI_COMMIT_MESSAGE =~ /\d+\.\d+\.\d+/
+
+deploy:
+  stage: deploy
+  variables:
+    GIT_REF: $CI_COMMIT_SHORT_SHA
+  before_script:
+    # see https://dokku.com/docs/deployment/methods/git/#initializing-from-private-repositories
+    - command -v ssh-agent > /dev/null || (apt-get update -y && apt-get install openssh-client -y)
+    - eval $(ssh-agent -s)
+    - chmod 400 "$SSH_PRIVATE_KEY"
+    - ssh-add "$SSH_PRIVATE_KEY"
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+  script:
+    - ssh-keyscan -H -p 22 "192.168.1.35" >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+    - ssh dokku@192.168.1.35 "dokku git:sync --build tweetty git@$CI_SERVER_SHELL_SSH_HOST:python_advanced_diploma/tweetty.git $GIT_REF"
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_MESSAGE =~ /^\d+\.\d+\.\d+/
+      when: manual
+
+rollback:
+  extends: deploy
+  stage: rollback
+  variables:
+    GIT_REF: $CI_COMMIT_BEFORE_SHA

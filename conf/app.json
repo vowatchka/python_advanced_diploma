@@ -1,0 +1,7 @@
+{
+    "scripts": {
+        "dokku": {
+            "predeploy": "cd ./tweetty && alembic upgrade head"
+        }
+    }
+}

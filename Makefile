@@ -54,7 +54,7 @@ isort: # run python isort module
 
 .PHONY: migrate
 migrate: # apply migrations
-	docker-compose exec api alembic upgrade head
+	docker-compose exec api /bin/bash -c "cd ./tweetty && alembic upgrade head"
 
 .PHONY: app-logs
 app-logs: # show application logs. Use ARGS for additional arguments
