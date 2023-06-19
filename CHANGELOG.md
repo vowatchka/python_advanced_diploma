@@ -2,6 +2,21 @@
 
 <!--next-version-placeholder-->
 
+## v0.8.2 (2023-06-19)
+
+### Fix
+
+* Serve static files in debug mode ([`b76e3fd`](https://gitlab.skillbox.ru/vladimir_saltykov/python_advanced_diploma/-/commit/b76e3fdef22e5b8544ddbebf02fdac99e71380e2))
+* Commit tweets and medias to DB ([`3e02581`](https://gitlab.skillbox.ru/vladimir_saltykov/python_advanced_diploma/-/commit/3e02581be2cb06e3a8f4c6b707e13e09d7059878))
+
+### Documentation
+
+* #16: describe how to setup SSH keys for GitLab CI/CD ([`36e4a5d`](https://gitlab.skillbox.ru/vladimir_saltykov/python_advanced_diploma/-/commit/36e4a5dcfb3e70244e9fc92b8207be994a22921d))
+* #16: update README.md ([`5c91e0b`](https://gitlab.skillbox.ru/vladimir_saltykov/python_advanced_diploma/-/commit/5c91e0b606ed3a82244b85503fe7edc9bc87b8b4))
+* #16: update README.md in part of demo stand ([`2789f5b`](https://gitlab.skillbox.ru/vladimir_saltykov/python_advanced_diploma/-/commit/2789f5b7d4127a1cdae9782f65c4ada91e013340))
+* #16: update docs for demo stand ([`3986d9c`](https://gitlab.skillbox.ru/vladimir_saltykov/python_advanced_diploma/-/commit/3986d9c945ca71652fa7d4d36e69830454676ffc))
+* #16: describe demo stand in README.md ([`6d3dd4d`](https://gitlab.skillbox.ru/vladimir_saltykov/python_advanced_diploma/-/commit/6d3dd4d05f6c7c58bc666e2de1d764d5c7ca7f3a))
+
 ## v0.8.1 (2023-06-09)
 
 ### Fix
