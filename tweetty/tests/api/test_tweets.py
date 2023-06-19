@@ -239,3 +239,18 @@ async def test_delete_someone_else_tweet(api_client: APITestClient, test_tweet: 
     assert response.status_code == 403
 
     assert_http_error(response.json())
+
+
+@pytest.mark.get_tweets
+@pytest.mark.parametrize(
+    "api_key",
+    [
+        "",
+        "no" * 15,
+    ]
+)
+async def test_get_tweets_auth(api_client: APITestClient, api_key: str):
+    """Проверка авторизации для получения ленты твитов."""
+    response = await api_client.get_tweets(api_key)
+    assert response.status_code == 401
+    assert_http_error(response.json())

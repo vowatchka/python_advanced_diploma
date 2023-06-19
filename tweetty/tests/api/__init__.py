@@ -65,6 +65,13 @@ class APITestClient:
             headers=self.api_key_header(api_key),
         )
 
+    async def get_tweets(self, api_key: str) -> Response:
+        """Получить список твитов."""
+        return await self._client.get(
+            self.tweets_route(),
+            headers=self.api_key_header(api_key),
+        )
+
     async def delete_tweet(self, tweet_id: int, api_key: str) -> Response:
         """Удалить твит."""
         return await self._client.delete(

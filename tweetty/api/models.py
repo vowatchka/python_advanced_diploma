@@ -119,3 +119,8 @@ class NewMediaOut(ResultModel):
         title="Id медиа",
         description="Id добавленного медиа",
     )
+
+
+class TweetListModel(ResultModel):
+    """Модель списка твитов."""
+    pass

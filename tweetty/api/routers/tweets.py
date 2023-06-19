@@ -11,7 +11,7 @@ from ...shortcuts import get_object_or_none
 from ..auth import get_authorized_user
 from ..exceptions import (HTTP_403_FORBIDDEN_DESC, HTTP_500_INTERNAL_SERVER_ERROR_DESC, ForbiddenError, NotFoundError,
                           http_exception,)
-from ..models import HTTPErrorModel, NewTweetIn, NewTweetOut, ResultModel
+from ..models import HTTPErrorModel, NewTweetIn, NewTweetOut, ResultModel, TweetListModel
 
 tweets_router = APIRouter(
     prefix="/tweets",
@@ -194,3 +194,19 @@ async def unlike_tweet(
     # если лайк отсутствует, то все равно возвращает `True`,
     # чтобы соблюсти идемпотентность метода DELETE
     return ResultModel(result=True)
+
+
+@tweets_router.get(
+    "",
+    summary="Получить ленту твитов пользователя",
+    status_code=200,
+    response_model=TweetListModel,
+    response_description="Success",
+    tags=tweets_tags,
+)
+async def get_tweets(
+    db_session: Annotated[AsyncSession, Depends(models.db_session)],
+    auth_user: Annotated[models.User, Depends(get_authorized_user)]
+) -> TweetListModel:
+    """Получить ленту твитов пользователя."""
+    return TweetListModel(result=True)
