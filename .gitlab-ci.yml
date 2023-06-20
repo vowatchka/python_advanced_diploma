@@ -104,7 +104,9 @@ deploy:
     - chmod 644 ~/.ssh/known_hosts
     - ssh dokku@192.168.1.35 "dokku git:sync --build tweetty git@$CI_SERVER_SHELL_SSH_HOST:python_advanced_diploma/tweetty.git $GIT_REF"
   rules:
-    - if: $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_MESSAGE =~ /^\d+\.\d+\.\d+/
+    - if: $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "master"
+      when: manual
+    - if: ($CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "master") && $CI_COMMIT_MESSAGE =~ /^\d+\.\d+\.\d+/
       when: manual
 
 rollback:
