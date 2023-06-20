@@ -10,6 +10,7 @@ from ..api.routers import medias as media_routers
 from ..db import models, pg
 from ..settings import POSTGRES_URL
 from .api import api_client  # noqa: F401
+from .api.test_follows import followed_user  # noqa: F401
 from .api.test_medias import generate_mediafile_name, test_file, test_file_uploaded_path  # noqa: F401
 from .api.test_tweets import test_tweet  # noqa: F401
 

@@ -267,15 +267,47 @@ async def test_get_tweets_without_any_tweet(api_client: APITestClient, test_user
     assert_tweet_list(response.json(), 0)
 
 
+@pytest.fixture
+async def prepare_tweets(test_user: db_models.User, followed_user: db_models.User,
+                         db_session: AsyncSession):
+    """Тестовые твиты для тестов получения твитов."""
+    async def _prepare_tweets(own_tweets: bool) -> tuple[db_models.User, list[db_models.Tweet]]:
+        if not own_tweets:
+            user = followed_user
+
+            db_session.add(db_models.Follower(
+                user_id=followed_user.id,
+                follower_id=test_user.id,
+            ))
+            await db_session.commit()
+        else:
+            user = test_user
+
+        tweets = [
+            db_models.Tweet(content=f"test{i}", user_id=user.id)
+            for i in range(3)
+        ]
+        db_session.add_all(tweets)
+        await db_session.commit()
+
+        return user, tweets
+
+    yield _prepare_tweets
+
+
 @pytest.mark.get_tweets
-async def test_get_own_tweets(api_client: APITestClient, test_user: db_models.User, db_session: AsyncSession):
-    """Проверка получения собственных твитов пользователя."""
-    tweets = [
-        db_models.Tweet(content=f"test{i}", user_id=test_user.id)
-        for i in range(3)
-    ]
-    db_session.add_all(tweets)
-    await db_session.commit()
+@pytest.mark.parametrize(
+    "own_tweets",
+    [True, False]
+)
+async def test_get_tweets(api_client: APITestClient, test_user: db_models.User, prepare_tweets, own_tweets: bool):
+    """
+    Проверка получения твитов пользователя.
+
+    :param own_tweets: `True`, если выполнять тесты с собственными твитами пользователя,
+        и `False`, если выполнять тесты с твитами читаемых пользователей.
+    """
+    user, tweets = await prepare_tweets(own_tweets)
 
     response = await api_client.get_tweets(test_user.api_key)
     assert response.status_code == 200
@@ -288,8 +320,8 @@ async def test_get_own_tweets(api_client: APITestClient, test_user: db_models.Us
         assert isinstance(tweet["content"], str)
         assert tweet["content"] is not None
         assert isinstance(tweet["author"], dict)
-        assert tweet["author"]["id"] == test_user.id
-        assert tweet["author"]["name"] == test_user.nickname
+        assert tweet["author"]["id"] == user.id
+        assert tweet["author"]["name"] == user.nickname
         assert isinstance(tweet["attachments"], list)
         assert len(tweet["attachments"]) == 0
         assert isinstance(tweet["likes"], list)
@@ -297,15 +329,19 @@ async def test_get_own_tweets(api_client: APITestClient, test_user: db_models.Us
 
 
 @pytest.mark.get_tweets
-async def test_get_own_tweets_with_attachments(api_client: APITestClient, test_user: db_models.User,
-                                               db_session: AsyncSession):
-    """Проверка получения собственных твитов пользователя с вложениями."""
-    tweets = [
-        db_models.Tweet(content=f"test{i}", user_id=test_user.id)
-        for i in range(3)
-    ]
-    db_session.add_all(tweets)
-    await db_session.commit()
+@pytest.mark.parametrize(
+    "own_tweets",
+    [True, False]
+)
+async def test_get_tweets_with_attachments(api_client: APITestClient, test_user: db_models.User,
+                                           db_session: AsyncSession, prepare_tweets, own_tweets: bool):
+    """
+    Проверка получения твитов пользователя с вложениями.
+
+    :param own_tweets: `True`, если выполнять тесты с собственными твитами пользователя,
+        и `False`, если выполнять тесты с твитами читаемых пользователей.
+    """
+    user, tweets = await prepare_tweets(own_tweets)
 
     for idx, tweet in enumerate(tweets):
         medias = [
@@ -326,7 +362,7 @@ async def test_get_own_tweets_with_attachments(api_client: APITestClient, test_u
     assert_tweet_list(resp, len(tweets))
 
     for resp_tweet in resp["tweets"]:
-        tweet = list(filter(lambda t, tid=resp_tweet["id"]: t.id == tid, tweets))[0]  # type: ignore
+        tweet = list(filter(lambda t, tid=resp_tweet["id"]: t.id == tid, tweets))[0]  # type: ignore[arg-type]
 
         assert isinstance(resp_tweet["attachments"], list)
         assert len(resp_tweet["attachments"]) == len(tweet.medias)
@@ -336,15 +372,19 @@ async def test_get_own_tweets_with_attachments(api_client: APITestClient, test_u
 
 
 @pytest.mark.get_tweets
-async def test_get_own_tweets_with_likes(api_client: APITestClient, test_user: db_models.User,
-                                         db_session: AsyncSession):
-    """Проверка получения собственных твитов пользователя с лайками."""
-    tweets = [
-        db_models.Tweet(content=f"test{i}", user_id=test_user.id)
-        for i in range(3)
-    ]
-    db_session.add_all(tweets)
-    await db_session.commit()
+@pytest.mark.parametrize(
+    "own_tweets",
+    [True, False]
+)
+async def test_get_tweets_with_likes(api_client: APITestClient, test_user: db_models.User,
+                                     db_session: AsyncSession, prepare_tweets, own_tweets: bool):
+    """
+    Проверка получения собственных твитов пользователя с лайками.
+
+    :param own_tweets: `True`, если выполнять тесты с собственными твитами пользователя,
+        и `False`, если выполнять тесты с твитами читаемых пользователей.
+    """
+    user, tweets = await prepare_tweets(own_tweets)
 
     users = [
         db_models.User(
@@ -383,7 +423,7 @@ async def test_get_own_tweets_with_likes(api_client: APITestClient, test_user: d
     assert_tweet_list(resp, len(tweets))
 
     for resp_tweet in resp["tweets"]:
-        tweet = list(filter(lambda t, tid=resp_tweet["id"]: t.id == tid, tweets))[0]  # type: ignore
+        tweet = list(filter(lambda t, tid=resp_tweet["id"]: t.id == tid, tweets))[0]  # type: ignore[arg-type]
 
         assert isinstance(resp_tweet["likes"], list)
         assert len(resp_tweet["likes"]) == len(tweet.likes)
@@ -391,5 +431,7 @@ async def test_get_own_tweets_with_likes(api_client: APITestClient, test_user: d
         for user_like in resp_tweet["likes"]:
             assert user_like["id"] is not None
 
-            likers = list(filter(lambda u, uid=user_like["id"]: u.id == uid, tweet.liked_by_users))  # type: ignore
+            likers = list(
+                filter(lambda u, uid=user_like["id"]: u.id == uid, tweet.liked_by_users)  # type: ignore[arg-type]
+            )
             assert user_like["name"] == likers[0].nickname

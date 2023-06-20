@@ -213,7 +213,7 @@ async def get_tweets(
     await db_session.refresh(auth_user, attribute_names=["followings"])
 
     user_ids = [auth_user.id]
-    user_ids.extend([followed_user.id for followed_user in auth_user.followings])
+    user_ids.extend([followed_user.user_id for followed_user in auth_user.followings])
 
     tweets_qs = await db_session.execute(
         select(models.Tweet)
