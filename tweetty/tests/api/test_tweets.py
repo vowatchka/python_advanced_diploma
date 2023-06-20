@@ -1,4 +1,5 @@
 import os
+import random
 from pathlib import PosixPath, WindowsPath
 from typing import BinaryIO, Union
 
@@ -9,7 +10,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...api import models as api_models
 from ...db import models as db_models
-from . import APITestClient, assert_http_error
+from ...settings import STATIC_DIR, STATIC_URL
+from . import APITestClient, assert_http_error, assert_tweet_list
 
 pytestmark = [pytest.mark.anyio, pytest.mark.tweets]
 
@@ -257,16 +259,12 @@ async def test_get_tweets_auth(api_client: APITestClient, api_key: str):
 
 
 @pytest.mark.get_tweets
-async def test_get_tweets_without_any_tweet(api_client: APITestClient, test_user: db_models.User,
-                                            db_session: AsyncSession):
+async def test_get_tweets_without_any_tweet(api_client: APITestClient, test_user: db_models.User):
     """Проверка получения пустового списка твитов при отсутствии твитов у пользователя."""
     response = await api_client.get_tweets(test_user.api_key)
     assert response.status_code == 200
 
-    resp = response.json()
-    assert resp["result"] is True
-    assert isinstance(resp["tweets"], list)
-    assert len(resp["tweets"]) == 0
+    assert_tweet_list(response.json(), 0)
 
 
 @pytest.mark.get_tweets
@@ -283,9 +281,7 @@ async def test_get_own_tweets(api_client: APITestClient, test_user: db_models.Us
     assert response.status_code == 200
 
     resp = response.json()
-    assert resp["result"] is True
-    assert isinstance(resp["tweets"], list)
-    assert len(resp["tweets"]) == len(tweets)
+    assert_tweet_list(resp, len(tweets))
 
     for tweet in resp["tweets"]:
         assert tweet["id"] is not None
@@ -298,3 +294,102 @@ async def test_get_own_tweets(api_client: APITestClient, test_user: db_models.Us
         assert len(tweet["attachments"]) == 0
         assert isinstance(tweet["likes"], list)
         assert len(tweet["likes"]) == 0
+
+
+@pytest.mark.get_tweets
+async def test_get_own_tweets_with_attachments(api_client: APITestClient, test_user: db_models.User,
+                                               db_session: AsyncSession):
+    """Проверка получения собственных твитов пользователя с вложениями."""
+    tweets = [
+        db_models.Tweet(content=f"test{i}", user_id=test_user.id)
+        for i in range(3)
+    ]
+    db_session.add_all(tweets)
+    await db_session.commit()
+
+    for idx, tweet in enumerate(tweets):
+        medias = [
+            db_models.TweetMedia(
+                rel_uri=STATIC_DIR + f"/test{i}.png",
+                tweet_id=tweet.id
+            )
+            for i in range(idx + 1)
+        ]
+        db_session.add_all(medias)
+        await db_session.commit()
+        await db_session.refresh(tweet, attribute_names=["medias"])
+
+    response = await api_client.get_tweets(test_user.api_key)
+    assert response.status_code == 200
+
+    resp = response.json()
+    assert_tweet_list(resp, len(tweets))
+
+    for resp_tweet in resp["tweets"]:
+        tweet = list(filter(lambda t, tid=resp_tweet["id"]: t.id == tid, tweets))[0]  # type: ignore
+
+        assert isinstance(resp_tweet["attachments"], list)
+        assert len(resp_tweet["attachments"]) == len(tweet.medias)
+
+        for attach in resp_tweet["attachments"]:
+            assert attach.startswith(STATIC_URL)
+
+
+@pytest.mark.get_tweets
+async def test_get_own_tweets_with_likes(api_client: APITestClient, test_user: db_models.User,
+                                         db_session: AsyncSession):
+    """Проверка получения собственных твитов пользователя с лайками."""
+    tweets = [
+        db_models.Tweet(content=f"test{i}", user_id=test_user.id)
+        for i in range(3)
+    ]
+    db_session.add_all(tweets)
+    await db_session.commit()
+
+    users = [
+        db_models.User(
+            nickname="test_liker_1",
+            api_key="b" * 30,
+        ),
+        db_models.User(
+            nickname="test_liker_2",
+            api_key="c" * 30,
+        ),
+    ]
+    db_session.add_all(users)
+    await db_session.commit()
+
+    # пользователь может лайкать сам себя
+    users.append(test_user)
+
+    for tweet in tweets:
+        likers = users[:random.randint(1, len(users))]
+
+        likes = [
+            db_models.Like(
+                tweet_id=tweet.id,
+                user_id=liker.id,
+            )
+            for liker in likers
+        ]
+        db_session.add_all(likes)
+        await db_session.commit()
+        await db_session.refresh(tweet, attribute_names=["likes"])
+
+    response = await api_client.get_tweets(test_user.api_key)
+    assert response.status_code == 200
+
+    resp = response.json()
+    assert_tweet_list(resp, len(tweets))
+
+    for resp_tweet in resp["tweets"]:
+        tweet = list(filter(lambda t, tid=resp_tweet["id"]: t.id == tid, tweets))[0]  # type: ignore
+
+        assert isinstance(resp_tweet["likes"], list)
+        assert len(resp_tweet["likes"]) == len(tweet.likes)
+
+        for user_like in resp_tweet["likes"]:
+            assert user_like["id"] is not None
+
+            likers = list(filter(lambda u, uid=user_like["id"]: u.id == uid, tweet.liked_by_users))  # type: ignore
+            assert user_like["name"] == likers[0].nickname

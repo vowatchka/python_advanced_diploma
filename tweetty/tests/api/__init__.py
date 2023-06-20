@@ -17,6 +17,13 @@ def assert_http_error(resp: dict):
     assert isinstance(detail["error_message"], str)
 
 
+def assert_tweet_list(resp: dict, tweet_count: int):
+    """Проверка списка твитов."""
+    assert resp["result"] is True
+    assert isinstance(resp["tweets"], list)
+    assert len(resp["tweets"]) == tweet_count
+
+
 APIKeyHeader = TypedDict("APIKeyHeader", {"api-key": str})
 
 
