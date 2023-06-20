@@ -435,3 +435,76 @@ async def test_get_tweets_with_likes(api_client: APITestClient, test_user: db_mo
                 filter(lambda u, uid=user_like["id"]: u.id == uid, tweet.liked_by_users)  # type: ignore[arg-type]
             )
             assert user_like["name"] == likers[0].nickname
+
+
+@pytest.mark.get_tweets
+async def test_get_tweets_likes_sorted_desc(api_client: APITestClient, test_user: db_models.User,
+                                            test_tweet: db_models.Tweet, followed_user: db_models.User,
+                                            db_session: AsyncSession):
+    """Проверка, что твиты в ленте отсортированы по убыванию лайков."""
+    # создаем твит пользователю, на которого подпишемся
+    followed_user_tweets = [
+        db_models.Tweet(
+            content=f"followed user tweet {i}",
+            user_id=followed_user.id,
+        )
+        for i in range(3)
+    ]
+    db_session.add_all(followed_user_tweets)
+    await db_session.commit()
+
+    # подписываемся
+    db_session.add(
+        db_models.Follower(
+            user_id=followed_user.id,
+            follower_id=test_user.id,
+        )
+    )
+    await db_session.commit()
+
+    # создаем пользователя, который просто лайкает
+    liker = db_models.User(
+        nickname="licker",
+        api_key="l" * 30,
+    )
+    db_session.add(liker)
+    await db_session.commit()
+
+    # твиты
+    tweets = [test_tweet]
+    tweets.extend(followed_user_tweets)
+    # пользователи
+    users = [test_user, followed_user, liker]
+
+    # ставим лайки
+    for tweet in tweets:
+        if len(users):
+            likes = [
+                db_models.Like(
+                    tweet_id=tweet.id,
+                    user_id=user.id,
+                )
+                for user in users
+            ]
+            db_session.add_all(likes)
+            await db_session.commit()
+
+            users.pop(0)
+
+        await db_session.refresh(tweet, attribute_names=["likes"])
+
+    # сортируем твиты по убыванию количества лайков
+    tweets = sorted(tweets, key=lambda t: len(tweet.likes))
+
+    response = await api_client.get_tweets(test_user.api_key)
+    assert response.status_code == 200
+
+    resp = response.json()
+    assert_tweet_list(resp, len(tweets))
+
+    # проверяем правильность сортировки
+    for idx, resp_tweet in enumerate(resp["tweets"]):
+        tweet = tweets[idx]
+
+        assert resp_tweet["id"] == tweet.id
+        assert len(resp_tweet["likes"]) == len(tweet.likes)
