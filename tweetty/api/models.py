@@ -210,28 +210,21 @@ class TweetListOut(ResultModel):
         list(),
         title="Список твитов",
         description="Список твитов пользователя",
-    )
-
-    class Config:
-        schema_extra = {
-            "example": {
-                "result": True,
-                "tweets": [
-                    {
-                        "id": 0,
-                        "content": "string",
-                        "author": {
-                            "id": 0,
-                            "name": "string",
-                        },
-                        "attachments": ["string"],
-                        "likes": [
-                            {
-                                "id": 0,
-                                "name": "string",
-                            },
-                        ],
-                    },
+        example=[
+            TweetOut(
+                id=0,
+                content="string",
+                user=UserOut(
+                    id=0,
+                    name="tring",
+                ),
+                attachments=["string"],
+                likes=[
+                    UserOut(
+                        id=0,
+                        name="string",
+                    ),
                 ],
-            },
-        }
+            ).dict(by_alias=True)
+        ]
+    )
