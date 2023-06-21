@@ -72,7 +72,7 @@ async def save_mediafile_on_disk(path: Union[str, os.PathLike], media: BinaryIO)
         await f.write(media.read())
 
 
-@backoff.on_exception(backoff.expo, StatementError, max_time=120, jitter=None)
+@backoff.on_exception(backoff.expo, StatementError, max_tries=3, max_time=60, jitter=None)
 async def save_mediafile_on_database(db_session: AsyncSession, new_media: models.TweetMedia):
     """
     Сохраняет данные медиа-файла в базе данных.
