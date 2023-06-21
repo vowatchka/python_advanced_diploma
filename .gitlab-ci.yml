@@ -85,6 +85,7 @@ release:
     - master
   rules:
     - if: $GL_TOKEN != null && $CI_COMMIT_MESSAGE !~ /^\d+\.\d+\.\d+/
+  allow_failure: true
 
 deploy:
   stage: deploy
@@ -107,6 +108,7 @@ deploy:
       when: manual
     - if: ($CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "master") && $CI_COMMIT_MESSAGE =~ /^\d+\.\d+\.\d+/
       when: manual
+  allow_failure: true
 
 rollback:
   extends: deploy
