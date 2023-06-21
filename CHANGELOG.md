@@ -2,6 +2,23 @@
 
 <!--next-version-placeholder-->
 
+## v0.9.0 (2023-06-21)
+
+### Feature
+
+* #12: GET /api/tweets return tweets ([`2f01e4f`](https://gitlab.skillbox.ru/vladimir_saltykov/python_advanced_diploma/-/commit/2f01e4f6e92f69a7af7eff442cd888bf8067cc8e))
+* #12: add GET /api/tweets with only auth ([`75b3f3d`](https://gitlab.skillbox.ru/vladimir_saltykov/python_advanced_diploma/-/commit/75b3f3d7ab234e545e495cacf67c505000381bcc))
+
+### Fix
+
+* #12: likes in TweetOut must be unique ([`760ab1b`](https://gitlab.skillbox.ru/vladimir_saltykov/python_advanced_diploma/-/commit/760ab1b07b5128114a1b9fc0b42586a7f975829a))
+* #12: fix sort by likes ([`8fe6be7`](https://gitlab.skillbox.ru/vladimir_saltykov/python_advanced_diploma/-/commit/8fe6be7de3a1cc829ec18b914f2af1c10f59dd16))
+
+### Documentation
+
+* #12: fix example for TweetListOut model ([`847b892`](https://gitlab.skillbox.ru/vladimir_saltykov/python_advanced_diploma/-/commit/847b892d2c0543747c6020870bc014e0d5647f9f))
+* Fix README.md mistakes ([`fecbee2`](https://gitlab.skillbox.ru/vladimir_saltykov/python_advanced_diploma/-/commit/fecbee26993b52607730038b5a84e23fadc22468))
+
 ## v0.8.2 (2023-06-19)
 
 ### Fix
