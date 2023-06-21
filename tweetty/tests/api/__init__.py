@@ -17,6 +17,13 @@ def assert_http_error(resp: dict):
     assert isinstance(detail["error_message"], str)
 
 
+def assert_tweet_list(resp: dict, tweet_count: int):
+    """Проверка списка твитов."""
+    assert resp["result"] is True
+    assert isinstance(resp["tweets"], list)
+    assert len(resp["tweets"]) == tweet_count
+
+
 APIKeyHeader = TypedDict("APIKeyHeader", {"api-key": str})
 
 
@@ -62,6 +69,13 @@ class APITestClient:
         return await self._client.post(
             self.tweets_route(),
             json=json_data,
+            headers=self.api_key_header(api_key),
+        )
+
+    async def get_tweets(self, api_key: str) -> Response:
+        """Получить список твитов."""
+        return await self._client.get(
+            self.tweets_route(),
             headers=self.api_key_header(api_key),
         )
 
