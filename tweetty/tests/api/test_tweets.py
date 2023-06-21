@@ -477,24 +477,22 @@ async def test_get_tweets_likes_sorted_desc(api_client: APITestClient, test_user
     users = [test_user, followed_user, liker]
 
     # ставим лайки
-    for tweet in tweets:
-        if len(users):
+    for idx, tweet in enumerate(tweets):
+        if idx < len(users):
             likes = [
                 db_models.Like(
                     tweet_id=tweet.id,
                     user_id=user.id,
                 )
-                for user in users
+                for user in users[:idx + 1]
             ]
             db_session.add_all(likes)
             await db_session.commit()
 
-            users.pop(0)
-
         await db_session.refresh(tweet, attribute_names=["likes"])
 
     # сортируем твиты по убыванию количества лайков
-    tweets = sorted(tweets, key=lambda t: len(tweet.likes))
+    tweets = sorted(tweets, key=lambda t: len(t.likes), reverse=True)
 
     response = await api_client.get_tweets(test_user.api_key)
     assert response.status_code == 200
@@ -506,5 +504,5 @@ async def test_get_tweets_likes_sorted_desc(api_client: APITestClient, test_user
     for idx, resp_tweet in enumerate(resp["tweets"]):
         tweet = tweets[idx]
 
-        assert resp_tweet["id"] == tweet.id
         assert len(resp_tweet["likes"]) == len(tweet.likes)
+        assert resp_tweet["id"] == tweet.id

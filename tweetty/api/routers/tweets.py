@@ -223,10 +223,12 @@ async def get_tweets(
         .options(
             selectinload(models.Tweet.medias),
             selectinload(models.Tweet.user),
-            selectinload(models.Tweet.likes)
+            selectinload(models.Tweet.likes).options(selectinload(models.Like.user))
         )
     )
+
     tweets: Sequence[models.Tweet] = tweets_qs.scalars().all()
+    tweets = sorted(tweets, key=lambda t: len(t.likes), reverse=True)
 
     return TweetListOut(
         result=True,

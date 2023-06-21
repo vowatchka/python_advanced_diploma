@@ -148,8 +148,8 @@ class UserOut(BaseModel):
 
 class TweetGetter(GetterDict):
     """
-    Класс `TweetGetter` определяет, как сделать `tweetty.db.models.Tweet`
-    похожим на `dict`.
+    Класс `TweetGetter` служит для получения `tweetty.db.models.Tweet`
+    в модели Pydantic.
     """
 
     def get(self, key: Any, default: Any = None) -> Any:
@@ -159,13 +159,7 @@ class TweetGetter(GetterDict):
             if key == "medias":
                 return [static_uri(media.rel_uri) for media in self._obj.medias]
             elif key == "likes":
-                return [
-                    UserOut(
-                        id=user.id,
-                        nickname=user.nickname,
-                    )
-                    for user in self._obj.liked_by_users
-                ]
+                return [UserOut.from_orm(user) for user in self._obj.liked_by_users]
 
         return value
 
