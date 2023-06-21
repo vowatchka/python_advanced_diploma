@@ -83,9 +83,8 @@ release:
   only:
     - main
     - master
-  except:
-    variables:
-      - $CI_COMMIT_MESSAGE =~ /\d+\.\d+\.\d+/
+  rules:
+    - if: $GL_TOKEN != null && $CI_COMMIT_MESSAGE !~ /^\d+\.\d+\.\d+/
 
 deploy:
   stage: deploy
