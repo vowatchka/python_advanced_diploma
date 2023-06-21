@@ -114,14 +114,6 @@ make test
 
    ![зарегистрированный раннер](docs/imgs/registered-gitlab-runners.png)
 
-1. Создать Access Token в проекте `tweetty`. После создания токена нужно скопировать его, потому что он потребуется на следующем шаге
-
-   ![создание access token](docs/imgs/create-access-token.png)
-
-1. Создать переменную `GL_TOKEN` в переменных CI/CD и указать в качестве значения токен с предыдущего шага. Эта переменная нужна для [автоматического создания релизов](https://python-semantic-release.readthedocs.io/en/latest/#releasing-on-github-gitlab)
-
-   ![создание переменной GL_TOKEN](docs/imgs/token-variable.png)
-
 1. Получить публичный ключ dokku для деплоя из гит-репозитория
    ```shell
    vagrant ssh backend -c "dokku git:public-key"
@@ -141,6 +133,19 @@ make test
    -----> Cloning tweetty from git@192.168.1.34:python_advanced_diploma/tweetty.git#
           Detected branch, setting deploy-branch to master
    ```
+
+### Настройка автоматического версионирования и создания релизов
+Для авоматического версионирования и создания релизов используется библиотека [python-semantic-release](https://python-semantic-release.readthedocs.io/en/latest/). [Конфиг для `python-semantic-release`](pyproject.toml) настроен на основной репозиторий проекта, поэтому на демо-стенде эта функция работать не будет. Чтобы процесс CI/CD продолжал работать без ошибок, автоматическое версионирование отключено на уровне [.gitlab-ci.yml](.gitlab-ci.yml).
+
+Дальнейшие шаги приводятся для справки.
+
+1. Создать Access Token в проекте `tweetty`. После создания токена нужно скопировать его, потому что он потребуется на следующем шаге
+
+   ![создание access token](docs/imgs/create-access-token.png)
+
+1. Создать переменную `GL_TOKEN` в переменных CI/CD и указать в качестве значения токен с предыдущего шага. Эта переменная нужна для [автоматического создания релизов](https://python-semantic-release.readthedocs.io/en/latest/#releasing-on-github-gitlab)
+
+   ![создание переменной GL_TOKEN](docs/imgs/token-variable.png)
 
 ### Настройка деплоя из GitLab через SSH
 Подробно требования по настройке описана в [документации GitLab](https://docs.gitlab.com/ee/ci/ssh_keys/#how-it-works).
