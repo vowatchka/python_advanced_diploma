@@ -80,11 +80,8 @@ release:
     # коммиты слияния. Как следствие, коммит слияния не будет
     # учтен при вычислении новой версии.
     - semantic-release publish -v INFO
-  only:
-    - main
-    - master
   rules:
-    - if: $GL_TOKEN != null && $CI_COMMIT_MESSAGE !~ /^\d+\.\d+\.\d+/
+    - if: ($CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "master") && $GL_TOKEN != null && $CI_COMMIT_MESSAGE !~ /^\d+\.\d+\.\d+/
   allow_failure: true
 
 deploy:
