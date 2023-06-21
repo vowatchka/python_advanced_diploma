@@ -6,6 +6,7 @@ SQLAlchemy==2.0.4
 SQLAlchemy-Utils==0.41.0
 psycopg2-binary==2.9.6
 asyncpg==0.27.0
+backoff~=2.2
 alembic==1.10.4
 greenlet==2.0.2
 python-multipart==0.0.6

@@ -4,7 +4,9 @@ from pathlib import Path as OsPath
 from typing import Annotated, BinaryIO, Union
 
 import aiofiles
+import backoff
 from fastapi import APIRouter, Depends, UploadFile
+from sqlalchemy.exc import StatementError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...db import models
@@ -54,9 +56,10 @@ def generate_mediafile_name(media: UploadFile) -> str:
     return f"{uuid.uuid4()}{OsPath(media.filename).suffix}"
 
 
-async def save_mediafile(path: Union[str, os.PathLike], media: BinaryIO):
+@backoff.on_exception(backoff.expo, (FileExistsError, PermissionError), max_tries=3, jitter=None)
+async def save_mediafile_on_disk(path: Union[str, os.PathLike], media: BinaryIO):
     """
-    Сохраняет медиа-файл, автоматически создавая директории расположения файла,
+    Сохраняет медиа-файл на диске, автоматически создавая директории расположения файла,
     если их нет.
 
     :param path: путь к файлу.
@@ -67,6 +70,18 @@ async def save_mediafile(path: Union[str, os.PathLike], media: BinaryIO):
 
     async with aiofiles.open(path, "wb") as f:
         await f.write(media.read())
+
+
+@backoff.on_exception(backoff.expo, StatementError, max_time=120, jitter=None)
+async def save_mediafile_on_database(db_session: AsyncSession, new_media: models.TweetMedia):
+    """
+    Сохраняет данные медиа-файла в базе данных.
+
+    :param db_session: сессия с базой данных.
+    :param new_media: экземпляр модели медиа-файла.
+    """
+    db_session.add(new_media)
+    await db_session.commit()
 
 
 @medias_router.post(
@@ -92,17 +107,15 @@ async def publish_new_media(
 
     try:
         async with db_session.begin_nested():
-            # сохраняем файл на сервере
-            await save_mediafile(media_file, media.file)
+            await save_mediafile_on_disk(media_file, media.file)
 
-            # сохраняем в БД
             new_media = models.TweetMedia(
                 rel_uri=str(media_file),
             )
-            db_session.add(new_media)
-            await db_session.commit()
-    except Exception as ex:
-        # удаляем загруженный файл в случае проблем
+            await save_mediafile_on_database(db_session, new_media)
+    except (FileExistsError, PermissionError, StatementError) as ex:
+        # удаляем загруженный файл в случае проблем, чтобы не было мусора,
+        # потому что имя загруженного файла всегда генерируется уникальным
         if media_file.exists():
             os.remove(media_file)
 
