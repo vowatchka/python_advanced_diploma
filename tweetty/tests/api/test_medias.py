@@ -100,7 +100,7 @@ async def test_rollback_uploaded_file(api_client: APITestClient, test_user: db_m
     """Проверка удаления загруженного файла, если не удается сохранить его в БД."""
     # мокаем объект БД
     error = DatabaseError("error", ("test",), TypeError("test"))
-    mocker.patch.object(db_session, "add", autospec=True, side_effect=error)
+    mocker.patch.object(media_routers, "save_mediafile_on_database", autospec=True, side_effect=error)
 
     response = await api_client.upload_media(test_file, test_user.api_key)
     assert response.status_code == 500
@@ -110,13 +110,28 @@ async def test_rollback_uploaded_file(api_client: APITestClient, test_user: db_m
     assert not test_file_uploaded_path.exists()
 
 
-async def test_save_mediafile(test_file_uploaded_path: Union[PosixPath, WindowsPath], test_file: tuple[str, BinaryIO]):
+async def test_save_mediafile_on_disk(test_file_uploaded_path: Union[PosixPath, WindowsPath],
+                                      test_file: tuple[str, BinaryIO]):
     """Проверка сохранения медиа-файла на диск."""
     assert not test_file_uploaded_path.exists()
 
-    await media_routers.save_mediafile(str(test_file_uploaded_path), test_file[1])
+    await media_routers.save_mediafile_on_disk(str(test_file_uploaded_path), test_file[1])
 
     assert test_file_uploaded_path.exists()
+
+
+async def test_save_mediafile_on_database(db_session: AsyncSession):
+    """Проверка сохранения медиа-файла в базу данных."""
+    new_media = db_models.TweetMedia(
+        rel_uri="/test"
+    )
+
+    await media_routers.save_mediafile_on_database(db_session, new_media)
+
+    medias_qs = await db_session.execute(
+        select(db_models.TweetMedia).where(db_models.TweetMedia.id == new_media.id)
+    )
+    assert medias_qs.one_or_none() is not None
 
 
 @pytest.mark.parametrize(
