@@ -2,6 +2,16 @@
 
 <!--next-version-placeholder-->
 
+## v0.9.1 (2023-06-21)
+
+### Fix
+
+* Handle concrete exceptions on POST /api/medias ([`648ff00`](https://gitlab.skillbox.ru/vladimir_saltykov/python_advanced_diploma/-/commit/648ff0038799008dde50118c0d65ef99c3f6af5d))
+
+### Documentation
+
+* Update docs in part of autoreleasing ([`b58a8ef`](https://gitlab.skillbox.ru/vladimir_saltykov/python_advanced_diploma/-/commit/b58a8eff39e8e62f8db2d073643e3c432bdbb1e1))
+
 ## v0.9.0 (2023-06-21)
 
 ### Feature
