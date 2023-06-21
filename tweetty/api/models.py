@@ -194,6 +194,7 @@ class TweetOut(BaseModel):
         list(),
         title="Лайки",
         description="Лайки",
+        unique_items=True,
         exclude={"__all__": {"followers", "followings"}},
     )
 
