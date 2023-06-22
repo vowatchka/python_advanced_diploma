@@ -80,6 +80,7 @@ class NewTweetIn(BaseModel):
         title="Медиа-файлы",
         description="Список медиа, прикрепленных к твиту",
         alias="tweet_media_ids",
+        unique_items=True,
         exclude=True,
     )
 

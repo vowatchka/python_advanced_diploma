@@ -18,6 +18,7 @@ pytestmark = [pytest.mark.anyio, pytest.mark.tweets]
 
 @pytest.fixture
 async def test_tweet(db_session: AsyncSession, test_user: db_models.User):
+    """Тестовый твит."""
     tweet = db_models.Tweet(
         content="test",
         user_id=test_user.id
@@ -157,6 +158,26 @@ async def test_publish_new_tweet_media_items(api_client: APITestClient, test_use
             "tweet_media_ids": [media.id for media in medias],
         },
         test_user.api_key
+    )
+    assert response.status_code == 422
+
+
+@pytest.mark.post_tweets
+async def test_publish_new_tweet_with_not_unique_media_items(api_client: APITestClient, test_user: db_models.User,
+                                                             db_session: AsyncSession):
+    """Проверка, что список медиа должен состоять из уникальных элементов."""
+    new_media = db_models.TweetMedia(
+        rel_uri="/test",
+    )
+    db_session.add(new_media)
+    await db_session.commit()
+
+    response = await api_client.publish_tweet(
+        {
+            "tweet_data": "not unique medias",
+            "tweet_media_ids": [new_media.id] * 3,
+        },
+        test_user.api_key,
     )
     assert response.status_code == 422
 

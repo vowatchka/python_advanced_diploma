@@ -83,7 +83,7 @@ async def publish_new_tweet(
         # связываем переданные медиа с твитом
         await db_session.execute(
             update(models.TweetMedia)
-            .where(models.TweetMedia.id.in_(new_tweet_body.medias))
+            .where(models.TweetMedia.id.in_(set(new_tweet_body.medias)))
             .values(tweet_id=new_tweet.id)
         )
 
