@@ -2,6 +2,16 @@
 
 <!--next-version-placeholder-->
 
+## v0.10.0 (2023-06-22)
+
+### Feature
+
+* #14: add GET /api/users/{user_id} route and logic ([`636f9fc`](https://gitlab.skillbox.ru/vladimir_saltykov/python_advanced_diploma/-/commit/636f9fca1493bd3c525b4df2c32f5b9af22260b1))
+
+### Documentation
+
+* Update image ([`f39f864`](https://gitlab.skillbox.ru/vladimir_saltykov/python_advanced_diploma/-/commit/f39f86491e9d4161e7ae231d25882b043c1073e1))
+
 ## v0.9.2 (2023-06-22)
 
 ### Fix
