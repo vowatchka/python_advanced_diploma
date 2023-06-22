@@ -32,11 +32,13 @@ stages:
   - deploy
   - rollback
 
-_testing:
+linting:
   stage: test
   interruptible: true
   script:
-    - echo "extend me!"
+    - apk --update-cache add bash
+    - chmod +x ./lint.sh
+    - ./lint.sh $WORK_DIR
   only:
     - main
     - master
@@ -45,14 +47,8 @@ _testing:
     variables:
       - $CI_COMMIT_MESSAGE =~ /\d+\.\d+\.\d+/
 
-linting:
-  extends: _testing
-  script:
-    - chmod +x ./lint.sh
-    - ./lint.sh $WORK_DIR
-
 testing:
-  extends: _testing
+  extends: linting
   services:
     - $POSTGRES_IMAGE
   script:
