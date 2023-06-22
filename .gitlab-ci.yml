@@ -1,5 +1,9 @@
+#
+# How to optimize you piplines: https://blog.nimbleways.com/let-s-make-faster-gitlab-ci-cd-pipelines/
+#
+
 variables:
-  PYTHON_IMAGE: python:3.9-slim
+  PYTHON_IMAGE: python:3.9-alpine
   POSTGRES_IMAGE: postgres:15.2-alpine
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
   WORK_DIR: ./tweetty
@@ -23,17 +27,14 @@ before_script:
   - python -m pip install -r requirements.txt
 
 stages:
-  - lint
   - test
   - release
   - deploy
   - rollback
 
-linting:
-  stage: lint
-  script:
-    - chmod +x ./lint.sh
-    - ./lint.sh $WORK_DIR
+_testing:
+  stage: test
+  interruptible: true
   only:
     - main
     - master
@@ -42,19 +43,18 @@ linting:
     variables:
       - $CI_COMMIT_MESSAGE =~ /\d+\.\d+\.\d+/
 
+linting:
+  extends: _testing
+  script:
+    - chmod +x ./lint.sh
+    - ./lint.sh $WORK_DIR
+
 testing:
-  stage: test
+  extends: _testing
   services:
     - $POSTGRES_IMAGE
   script:
     - pytest -v --color=yes $WORK_DIR
-  only:
-    - main
-    - master
-    - merge_requests
-  except:
-    variables:
-      - $CI_COMMIT_MESSAGE =~ /\d+\.\d+\.\d+/
 
 release:
   stage: release
@@ -62,8 +62,7 @@ release:
     # degug
     - echo $GITLAB_CI
     # install git
-    - apt-get update -y
-    - apt-get install -y git
+    - apk --update-cache add git
     # setup git
     - git config --local user.name "semantic-release"
     - git config --local user.email "semantic-release"
@@ -90,7 +89,7 @@ deploy:
     GIT_REF: $CI_COMMIT_SHORT_SHA
   before_script:
     # see https://dokku.com/docs/deployment/methods/git/#initializing-from-private-repositories
-    - command -v ssh-agent > /dev/null || (apt-get update -y && apt-get install openssh-client -y)
+    - command -v ssh-agent > /dev/null || (apk --update-cache add openssh-client)
     - eval $(ssh-agent -s)
     - chmod 400 "$SSH_PRIVATE_KEY"
     - ssh-add "$SSH_PRIVATE_KEY"
