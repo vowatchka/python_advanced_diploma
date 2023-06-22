@@ -35,6 +35,8 @@ stages:
 _testing:
   stage: test
   interruptible: true
+  script:
+    - echo "extend me!"
   only:
     - main
     - master
