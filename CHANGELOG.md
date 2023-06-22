@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.9.2 (2023-06-22)
+
+### Fix
+
+* Add unique_items for NewTweetIn.medias ([`dde8324`](https://gitlab.skillbox.ru/vladimir_saltykov/python_advanced_diploma/-/commit/dde832406cab508e53db50bd57ad5230b912a409))
+
 ## v0.9.1 (2023-06-21)
 
 ### Fix
