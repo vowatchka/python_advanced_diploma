@@ -15,7 +15,7 @@ from ...api.routers import medias as media_routers
 from ...db import models as db_models
 from . import APITestClient, assert_http_error
 
-pytestmark = [pytest.mark.anyio, pytest.mark.post_medias]
+pytestmark = [pytest.mark.anyio, pytest.mark.medias]
 
 
 class MockMediaConfig:
@@ -59,6 +59,7 @@ def generate_mediafile_name(media: UploadFile) -> str:
     return media.filename
 
 
+@pytest.mark.post_medias
 @pytest.mark.parametrize(
     "api_key",
     [
@@ -73,6 +74,7 @@ async def test_publish_new_media_auth(api_client: APITestClient, api_key: str, t
     assert_http_error(response.json())
 
 
+@pytest.mark.post_medias
 async def test_publish_new_media(api_client: APITestClient, test_user: db_models.User, test_file: tuple[str, BinaryIO],
                                  test_file_uploaded_path: Union[PosixPath, WindowsPath], db_session: AsyncSession):
     """Проверка публикации нового медиа."""
@@ -93,6 +95,7 @@ async def test_publish_new_media(api_client: APITestClient, test_user: db_models
     assert tweet_media_qs.scalar_one_or_none() is not None
 
 
+@pytest.mark.post_medias
 async def test_rollback_uploaded_file(api_client: APITestClient, test_user: db_models.User,
                                       test_file: tuple[str, BinaryIO],
                                       test_file_uploaded_path: Union[PosixPath, WindowsPath],
@@ -110,6 +113,7 @@ async def test_rollback_uploaded_file(api_client: APITestClient, test_user: db_m
     assert not test_file_uploaded_path.exists()
 
 
+@pytest.mark.post_medias
 async def test_save_mediafile_on_disk(test_file_uploaded_path: Union[PosixPath, WindowsPath],
                                       test_file: tuple[str, BinaryIO]):
     """Проверка сохранения медиа-файла на диск."""
@@ -120,6 +124,7 @@ async def test_save_mediafile_on_disk(test_file_uploaded_path: Union[PosixPath, 
     assert test_file_uploaded_path.exists()
 
 
+@pytest.mark.post_medias
 async def test_save_mediafile_on_database(db_session: AsyncSession):
     """Проверка сохранения медиа-файла в базу данных."""
     new_media = db_models.TweetMedia(
@@ -134,6 +139,7 @@ async def test_save_mediafile_on_database(db_session: AsyncSession):
     assert medias_qs.one_or_none() is not None
 
 
+@pytest.mark.post_medias
 @pytest.mark.parametrize(
     "min_size, max_size, expected_status_code",
     [
