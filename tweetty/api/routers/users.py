@@ -1,15 +1,16 @@
 from typing import Annotated, Optional
 
 from fastapi import APIRouter, Depends, Path, Response
-from sqlalchemy import and_
+from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from ...db import models
 from ...shortcuts import get_object_or_none
 from ..auth import get_authorized_user
 from ..exceptions import (HTTP_406_NOT_ACCEPTABLE_DESC, HTTP_500_INTERNAL_SERVER_ERROR_DESC, NotAcceptableError,
                           NotFoundError, http_exception,)
-from ..models import HTTPErrorModel, ResultModel
+from ..models import HTTPErrorModel, ResultModel, UserResultOut
 
 users_router = APIRouter(
     prefix="/users",
@@ -24,27 +25,40 @@ follows_tags = users_tags + ["follows"]
 UserId = Annotated[int, Path(description="Id пользователя")]
 
 
-async def get_user_or_none(db_session: Annotated[AsyncSession, Depends(models.db_session)],
-                           user_id: UserId) -> Optional[models.User]:
-    """Возвращает пользователя или `None`."""
-    return await get_object_or_none(
-        db_session,
-        models.User,
-        models.User.id == user_id
-    )
+class UserGetter:
+    def __init__(self, full_user: bool = False, raise_404: bool = False):
+        """
+        Получатель пользователя.
 
+        :param full_user: получить все данные о пользователе.
+        :param raise_404: возбуждать `404 Not Found` или нет.
+        """
+        self._full_user = full_user
+        self._raise_404 = raise_404
 
-async def get_user_or_404(user: Annotated[Optional[models.User], Depends(get_user_or_none)],
-                          user_id: UserId) -> models.User:
-    """Возвращает пользователя или возбуждает `404 Not Found`, если пользователя нет."""
-    if user is None:
-        raise http_exception(NotFoundError(f"user {user_id} doesn't exist"), status_code=404)
-    return user
+    async def __call__(self, db_session: Annotated[AsyncSession, Depends(models.db_session)],
+                       user_id: UserId) -> Optional[models.User]:
+        if not self._full_user:
+            user = await get_object_or_none(db_session, models.User, models.User.id == user_id)
+        else:
+            user_qs = await db_session.execute(
+                select(models.User)
+                .where(models.User.id == user_id)
+                .options(
+                    selectinload(models.User.followers).options(selectinload(models.Follower.follower)),
+                    selectinload(models.User.followings).options(selectinload(models.Follower.user)),
+                )
+            )
+            user = user_qs.scalar_one_or_none()
+
+        if self._raise_404 and user is None:
+            raise http_exception(NotFoundError(f"user {user_id} doesn't exist"), status_code=404)
+        return user
 
 
 async def get_following_or_none(
     db_session: Annotated[AsyncSession, Depends(models.db_session)],
-    user: Annotated[models.User, Depends(get_user_or_404)],
+    user: Annotated[models.User, Depends(UserGetter(raise_404=True))],
     auth_user: Annotated[models.User, Depends(get_authorized_user)]
 ) -> Optional[models.Follower]:
     """Возвращает подписку одного пользователя на другого или `None`."""
@@ -55,6 +69,28 @@ async def get_following_or_none(
             models.Follower.user_id == user.id,
             models.Follower.follower_id == auth_user.id
         )
+    )
+
+
+@users_router.get(
+    "/{user_id}",
+    summary="Получить профиль пользователя",
+    status_code=200,
+    response_model=UserResultOut,
+    response_description="Success",
+    responses={
+        404: {"model": HTTPErrorModel, "description": "User Not Found"},
+    },
+    tags=users_tags,
+)
+async def get_user(
+    auth_user: Annotated[models.User, Depends(get_authorized_user)],  # `auth_user` нужен, чтобы 401 срабатывал раньше
+    user: Annotated[models.User, Depends(UserGetter(full_user=True, raise_404=True))],
+) -> UserResultOut:
+    """Получить профиль пользователя"""
+    return UserResultOut(
+        result=True,
+        user=user,
     )
 
 

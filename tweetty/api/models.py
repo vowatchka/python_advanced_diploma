@@ -127,8 +127,8 @@ class NewMediaOut(ResultModel):
     )
 
 
-class UserOut(BaseModel):
-    """Модель пользователя."""
+class BaseUser(BaseModel):
+    """Базовая модель пользователя."""
 
     id: int = Field(
         ...,
@@ -147,6 +147,47 @@ class UserOut(BaseModel):
         allow_population_by_field_name = True
 
 
+class UserGetter(GetterDict):
+    """
+    Класс `UserGetter` служит для получения `tweetty.db.models.User`
+    в модели Pydantic.
+    """
+
+    def get(self, key: Any, default: Any = None) -> Any:
+        value = super().get(key, default=default)
+
+        if isinstance(self._obj, db_models.User):
+            if key == "followers":
+                return [BaseUser.from_orm(follower.follower) for follower in self._obj.followers]
+            elif key == "following":
+                return [BaseUser.from_orm(following.user) for following in self._obj.followings]
+
+        return value
+
+
+class UserWithFollowers(BaseUser):
+    """Модель пользователя с подписчиками."""
+
+    followers: list[BaseUser] = Field(
+        list(),
+        title="Подписчики",
+        description="Подписчики",
+        unique_items=True,
+        example=[BaseUser(id=0, name="string")],
+    )
+    following: list[BaseUser] = Field(
+        list(),
+        title="На кого подписан",
+        description="На кого подписан",
+        unique_items=True,
+        example=[BaseUser(id=0, name="string")],
+    )
+
+    class Config:
+        orm_mode = True
+        getter_dict = UserGetter
+
+
 class TweetGetter(GetterDict):
     """
     Класс `TweetGetter` служит для получения `tweetty.db.models.Tweet`
@@ -160,7 +201,7 @@ class TweetGetter(GetterDict):
             if key == "medias":
                 return [static_uri(media.rel_uri) for media in self._obj.medias]
             elif key == "likes":
-                return [UserOut.from_orm(user) for user in self._obj.liked_by_users]
+                return [BaseUser.from_orm(user) for user in self._obj.liked_by_users]
 
         return value
 
@@ -178,12 +219,11 @@ class TweetOut(BaseModel):
         title="Содержимое твита",
         description="Содержимое твита",
     )
-    user: UserOut = Field(
+    user: BaseUser = Field(
         ...,
         title="Автор твита",
         description="Автор твита",
         alias="author",
-        exclude={"followers", "followings"},
     )
     medias: list[str] = Field(
         list(),
@@ -191,12 +231,11 @@ class TweetOut(BaseModel):
         description="Список медиа, прикрепленных к твиту",
         alias="attachments",
     )
-    likes: list[UserOut] = Field(
+    likes: list[BaseUser] = Field(
         list(),
         title="Лайки",
         description="Лайки",
         unique_items=True,
-        exclude={"__all__": {"followers", "followings"}},
     )
 
     class Config:
@@ -216,17 +255,27 @@ class TweetListOut(ResultModel):
             TweetOut(
                 id=0,
                 content="string",
-                user=UserOut(
+                user=BaseUser(
                     id=0,
                     name="tring",
                 ),
                 attachments=["string"],
                 likes=[
-                    UserOut(
+                    BaseUser(
                         id=0,
                         name="string",
                     ),
                 ],
             ).dict(by_alias=True)
         ]
+    )
+
+
+class UserResultOut(ResultModel):
+    """Модель результата запроса пользователя."""
+
+    user: UserWithFollowers = Field(
+        ...,
+        title="Пользователь",
+        description="Пользователь",
     )
