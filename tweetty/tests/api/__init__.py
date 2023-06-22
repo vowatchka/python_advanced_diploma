@@ -24,6 +24,16 @@ def assert_tweet_list(resp: dict, tweet_count: int):
     assert len(resp["tweets"]) == tweet_count
 
 
+def assert_user(resp: dict, user_id: int, user_name: str):
+    """Проверка пользователя."""
+    assert resp["result"] is True
+    assert isinstance(resp["user"], dict)
+    assert resp["user"]["id"] is not None
+    assert resp["user"]["id"] == user_id
+    assert resp["user"]["name"] is not None
+    assert resp["user"]["name"] == user_name
+
+
 APIKeyHeader = TypedDict("APIKeyHeader", {"api-key": str})
 
 
@@ -58,6 +68,14 @@ class APITestClient:
     def follow_route(user_id: int) -> str:
         """Возвращает роут подписки."""
         return f"/api/users/{user_id}/follow"
+
+    @staticmethod
+    def users_route(user_id: Optional[int] = None) -> str:
+        """Возвращает роут пользователей."""
+        route = "/api/users"
+        if user_id is not None:
+            route += f"/{user_id}"
+        return route
 
     @staticmethod
     def api_key_header(api_key: str) -> APIKeyHeader:
@@ -119,6 +137,13 @@ class APITestClient:
         """Отписаться от пользователя."""
         return await self._client.delete(
             self.follow_route(user_id),
+            headers=self.api_key_header(api_key),
+        )
+
+    async def get_users(self, user_id: int, api_key: str) -> Response:
+        """Получить профиль пользователя."""
+        return await self._client.get(
+            self.users_route(user_id),
             headers=self.api_key_header(api_key),
         )
 
