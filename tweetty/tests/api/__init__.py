@@ -140,7 +140,7 @@ class APITestClient:
             headers=self.api_key_header(api_key),
         )
 
-    async def get_users(self, user_id: int, api_key: str) -> Response:
+    async def get_user(self, user_id: int, api_key: str) -> Response:
         """Получить профиль пользователя."""
         return await self._client.get(
             self.users_route(user_id),

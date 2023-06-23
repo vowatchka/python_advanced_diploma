@@ -3,8 +3,9 @@ from sqlalchemy import select
 
 from ...db import models
 
+pytestmark = [pytest.mark.anyio, pytest.mark.db_models, pytest.mark.user_db_model]
 
-@pytest.mark.anyio
+
 async def test_add_user(db_session):
     """Проверка добавления нового пользователя."""
     new_user = models.User(

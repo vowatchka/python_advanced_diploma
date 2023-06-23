@@ -21,7 +21,7 @@ async def followed_user(db_session: AsyncSession):
     yield user
 
 
-@pytest.mark.post_follows
+@pytest.mark.post_follow
 @pytest.mark.parametrize(
     "api_key",
     [
@@ -36,7 +36,7 @@ async def test_follow_auth(api_client: APITestClient, followed_user: db_models.U
     assert_http_error(response.json())
 
 
-@pytest.mark.post_follows
+@pytest.mark.post_follow
 async def test_follow(api_client: APITestClient, test_user: db_models.User, followed_user: db_models.User,
                       db_session: AsyncSession):
     """Проверка подписи на другого пользователя."""
@@ -61,7 +61,7 @@ async def test_follow(api_client: APITestClient, test_user: db_models.User, foll
     assert follows[0] is not None
 
 
-@pytest.mark.post_follows
+@pytest.mark.post_follow
 async def test_follow_again(api_client: APITestClient, test_user: db_models.User, followed_user: db_models.User,
                             db_session: AsyncSession):
     """Проверка подписи на другого пользователя, на которого уже подписаны."""
@@ -91,7 +91,7 @@ async def test_follow_again(api_client: APITestClient, test_user: db_models.User
     assert follows[0] is not None
 
 
-@pytest.mark.post_follows
+@pytest.mark.post_follow
 async def test_follow_self(api_client: APITestClient, test_user: db_models.User):
     """Проверка невоможности подписаться на самого себя."""
     response = await api_client.follow(test_user.id, test_user.api_key)
@@ -99,7 +99,7 @@ async def test_follow_self(api_client: APITestClient, test_user: db_models.User)
     assert_http_error(response.json())
 
 
-@pytest.mark.post_follows
+@pytest.mark.post_follow
 async def test_follow_not_existed_user(api_client: APITestClient, test_user: db_models.User):
     """Проверка подписки на несуществующего пользователя."""
     response = await api_client.follow(100500, test_user.api_key)
@@ -107,7 +107,7 @@ async def test_follow_not_existed_user(api_client: APITestClient, test_user: db_
     assert_http_error(response.json())
 
 
-@pytest.mark.delete_follows
+@pytest.mark.delete_follow
 @pytest.mark.parametrize(
     "api_key",
     [
@@ -122,7 +122,7 @@ async def test_unfollow_auth(api_client: APITestClient, followed_user: db_models
     assert_http_error(response.json())
 
 
-@pytest.mark.delete_follows
+@pytest.mark.delete_follow
 async def test_unfollow(api_client: APITestClient, test_user: db_models.User, followed_user: db_models.User,
                         db_session: AsyncSession):
     """Проверка отписки от другого пользователя."""
@@ -153,7 +153,7 @@ async def test_unfollow(api_client: APITestClient, test_user: db_models.User, fo
     assert len(follow_qs.scalars().all()) == 0
 
 
-@pytest.mark.delete_follows
+@pytest.mark.delete_follow
 @pytest.mark.parametrize(
     "follow_himself",
     [True, False]
@@ -192,7 +192,7 @@ async def test_unfollow_again(api_client: APITestClient, test_user: db_models.Us
     assert resp["result"] is True
 
 
-@pytest.mark.delete_follows
+@pytest.mark.delete_follow
 async def test_unfollow_not_existed_user(api_client: APITestClient, test_user: db_models.User):
     """Проверка отписки от несуществующего пользователя."""
     response = await api_client.unfollow(100500, test_user.api_key)

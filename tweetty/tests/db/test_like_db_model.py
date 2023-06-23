@@ -4,8 +4,9 @@ from sqlalchemy.exc import IntegrityError
 
 from ...db import models
 
+pytestmark = [pytest.mark.anyio, pytest.mark.db_models, pytest.mark.like_db_model]
 
-@pytest.mark.anyio
+
 async def test_add_like(db_session):
     """Проверка добавления нового лайка."""
     users = [
@@ -32,7 +33,6 @@ async def test_add_like(db_session):
     assert added_like.user_id == new_like.user_id
 
 
-@pytest.mark.anyio
 async def test_cascade_delete_likes(db_session):
     """Проверка наличия каскадного удаления лайков."""
     users = [
@@ -84,7 +84,6 @@ async def test_cascade_delete_likes(db_session):
         assert len(likes_qs.scalars().all()) == 0
 
 
-@pytest.mark.anyio
 async def test_can_like_own_tweet(db_session):
     """Проверка, что можно лайкать свой твит."""
     user = models.User(
@@ -109,7 +108,6 @@ async def test_can_like_own_tweet(db_session):
     await db_session.commit()
 
 
-@pytest.mark.anyio
 async def test_cannot_like_twice(db_session):
     """Проверка, что один пользователь не может добавить еще один лайк
     твиту, который он уже залайкал."""

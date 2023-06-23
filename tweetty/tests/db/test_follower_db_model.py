@@ -4,8 +4,9 @@ from sqlalchemy.exc import IntegrityError
 
 from ...db import models
 
+pytestmark = [pytest.mark.anyio, pytest.mark.db_models, pytest.mark.follower_db_model]
 
-@pytest.mark.anyio
+
 async def test_add_follower(db_session):
     """Проверка добавления нового фолловера."""
     users = [
@@ -28,7 +29,6 @@ async def test_add_follower(db_session):
     assert added_follower.follower_id == new_follower.follower_id
 
 
-@pytest.mark.anyio
 async def test_cascade_delete_followers(db_session):
     """Проверка наличия каскадного удаления фолловеров."""
     users = [
@@ -76,7 +76,6 @@ async def test_cascade_delete_followers(db_session):
         assert len(follower_qs.scalars().all()) == 0
 
 
-@pytest.mark.anyio
 async def test_cannot_follow_for_self(db_session):
     """Проверка, что нельзя подписываться на себя же."""
     user = models.User(
@@ -95,7 +94,6 @@ async def test_cannot_follow_for_self(db_session):
         await db_session.commit()
 
 
-@pytest.mark.anyio
 async def test_cannot_follow_twice(db_session):
     """Проверка, что один пользователь не может подписываться еще раз
     на пользователя, на которого он уже подписан."""

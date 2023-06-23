@@ -21,7 +21,7 @@ async def liker_user(db_session: AsyncSession):
     yield liker
 
 
-@pytest.mark.post_likes
+@pytest.mark.post_like
 @pytest.mark.parametrize(
     "api_key",
     [
@@ -36,7 +36,7 @@ async def test_like_auth(api_client: APITestClient, api_key: str, test_tweet: db
     assert_http_error(response.json())
 
 
-@pytest.mark.post_likes
+@pytest.mark.post_like
 @pytest.mark.parametrize(
     "own_tweet",
     [True, False]
@@ -73,7 +73,7 @@ async def test_like_tweet(api_client: APITestClient, test_user: db_models.User, 
     assert likes[0] is not None
 
 
-@pytest.mark.post_likes
+@pytest.mark.post_like
 @pytest.mark.parametrize(
     "own_tweet",
     [True, False]
@@ -114,7 +114,7 @@ async def test_like_tweet_again(api_client: APITestClient, test_user: db_models.
     assert likes[0] is not None
 
 
-@pytest.mark.post_likes
+@pytest.mark.post_like
 async def test_like_not_existed_tweet(api_client: APITestClient, test_user: db_models.User):
     """Проверка лайка несуществующего твита."""
     response = await api_client.like(100500, test_user.api_key)
@@ -123,7 +123,7 @@ async def test_like_not_existed_tweet(api_client: APITestClient, test_user: db_m
     assert_http_error(response.json())
 
 
-@pytest.mark.delete_likes
+@pytest.mark.delete_like
 @pytest.mark.parametrize(
     "api_key",
     [
@@ -138,7 +138,7 @@ async def test_unlike_auth(api_client: APITestClient, api_key: str, test_tweet: 
     assert_http_error(response.json())
 
 
-@pytest.mark.delete_likes
+@pytest.mark.delete_like
 @pytest.mark.parametrize(
     "own_tweet",
     [True, False]
@@ -180,7 +180,7 @@ async def test_unlike_tweet(api_client: APITestClient, test_user: db_models.User
     assert len(like_qs.scalars().all()) == 0
 
 
-@pytest.mark.delete_likes
+@pytest.mark.delete_like
 @pytest.mark.parametrize(
     "own_tweet",
     [True, False]
@@ -216,7 +216,7 @@ async def test_unlike_tweet_again(api_client: APITestClient, test_user: db_model
     assert resp["result"] is True
 
 
-@pytest.mark.delete_likes
+@pytest.mark.delete_like
 async def test_unlike_not_existed_tweet(api_client: APITestClient, test_user: db_models.User):
     """Проверка дизлайка несуществующего твита."""
     response = await api_client.unlike(100500, test_user.api_key)

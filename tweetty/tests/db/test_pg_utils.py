@@ -1,4 +1,8 @@
+import pytest
+
 from ...db.pg import change_database_name, make_async_postgres_url
+
+pytestmark = [pytest.mark.db]
 
 
 def test_make_async_postgres_url():

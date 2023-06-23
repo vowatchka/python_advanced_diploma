@@ -20,7 +20,7 @@ async def requested_user(db_session: AsyncSession):
     yield user
 
 
-@pytest.mark.get_users
+@pytest.mark.get_user
 @pytest.mark.parametrize(
     "api_key",
     [
@@ -30,15 +30,15 @@ async def requested_user(db_session: AsyncSession):
 )
 async def test_get_user_auth(api_client: APITestClient, test_user: db_models.User, api_key: str):
     """Проверка авторизации для получения профиля пользователя."""
-    response = await api_client.get_users(test_user.id, api_key)
+    response = await api_client.get_user(test_user.id, api_key)
     assert response.status_code == 401
     assert_http_error(response.json())
 
 
-@pytest.mark.get_users
+@pytest.mark.get_user
 async def test_get_user(api_client: APITestClient, test_user: db_models.User, requested_user: db_models.User):
     """Проверка получения профиля пользователя."""
-    response = await api_client.get_users(requested_user.id, test_user.api_key)
+    response = await api_client.get_user(requested_user.id, test_user.api_key)
     assert response.status_code == 200
 
     resp = response.json()
@@ -50,7 +50,7 @@ async def test_get_user(api_client: APITestClient, test_user: db_models.User, re
     assert len(resp["user"]["following"]) == 0
 
 
-@pytest.mark.get_users
+@pytest.mark.get_user
 async def test_get_user_with_followers(api_client: APITestClient, test_user: db_models.User,
                                        requested_user: db_models.User, db_session: AsyncSession):
     """Проверка получения профиля пользователя, у которого есть подписчики."""
@@ -75,7 +75,7 @@ async def test_get_user_with_followers(api_client: APITestClient, test_user: db_
     )
     await db_session.commit()
 
-    response = await api_client.get_users(requested_user.id, test_user.api_key)
+    response = await api_client.get_user(requested_user.id, test_user.api_key)
     assert response.status_code == 200
 
     resp = response.json()
@@ -94,7 +94,7 @@ async def test_get_user_with_followers(api_client: APITestClient, test_user: db_
         assert resp_follower["name"] == follower.nickname
 
 
-@pytest.mark.get_users
+@pytest.mark.get_user
 async def test_get_user_with_following(api_client: APITestClient, test_user: db_models.User,
                                        requested_user: db_models.User, db_session: AsyncSession):
     """Проверка получения профиля пользователя, который на кого-то подписан."""
@@ -119,7 +119,7 @@ async def test_get_user_with_following(api_client: APITestClient, test_user: db_
     )
     await db_session.commit()
 
-    response = await api_client.get_users(requested_user.id, test_user.api_key)
+    response = await api_client.get_user(requested_user.id, test_user.api_key)
     assert response.status_code == 200
 
     resp = response.json()
@@ -138,9 +138,9 @@ async def test_get_user_with_following(api_client: APITestClient, test_user: db_
         assert resp_following["name"] == following.nickname
 
 
-@pytest.mark.get_users
+@pytest.mark.get_user
 async def test_get_user_not_exists(api_client: APITestClient, test_user: db_models.User):
     """Проверка получения профиля пользователя, которого не существует."""
-    response = await api_client.get_users(100500, test_user.api_key)
+    response = await api_client.get_user(100500, test_user.api_key)
     assert response.status_code == 404
     assert_http_error(response.json())
