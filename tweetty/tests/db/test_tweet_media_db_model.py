@@ -5,8 +5,9 @@ from sqlalchemy import select
 
 from ...db import models
 
+pytestmark = [pytest.mark.anyio, pytest.mark.db_models, pytest.mark.tweet_media_db_model]
 
-@pytest.mark.anyio
+
 async def test_add_tweet_media(db_session):
     """Проверка добавления нового медиа."""
     user = models.User(nickname="test1", api_key="a" * 30)
@@ -31,7 +32,6 @@ async def test_add_tweet_media(db_session):
     assert added_tweet_media.tweet_id == new_tweet_media.tweet_id
 
 
-@pytest.mark.anyio
 async def test_cascade_delete_tweet_medias(db_session):
     """Проверка наличия каскадного удаления медиа."""
     user = models.User(nickname="test1", api_key="a" * 30)

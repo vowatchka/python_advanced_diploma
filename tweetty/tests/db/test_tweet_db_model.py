@@ -5,8 +5,9 @@ from sqlalchemy import select
 
 from ...db import models
 
+pytestmark = [pytest.mark.anyio, pytest.mark.db_models, pytest.mark.tweet_db_model]
 
-@pytest.mark.anyio
+
 async def test_add_tweet(db_session):
     user = models.User(nickname="test1", api_key="a" * 30)
     db_session.add(user)
@@ -26,7 +27,6 @@ async def test_add_tweet(db_session):
     assert added_tweet.user_id == new_tweet.user_id
 
 
-@pytest.mark.anyio
 async def test_cascade_delete_tweets(db_session):
     """Проверка наличия каскадного удаления твитов."""
     user = models.User(nickname="test1", api_key="a" * 30)
