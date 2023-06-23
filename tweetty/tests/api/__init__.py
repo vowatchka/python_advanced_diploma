@@ -78,6 +78,11 @@ class APITestClient:
         return route
 
     @staticmethod
+    def me_route() -> str:
+        """Возвращает роут собственного профиля пользователя."""
+        return "/api/users/me"
+
+    @staticmethod
     def api_key_header(api_key: str) -> APIKeyHeader:
         """Возвращает заголовок `api-key`."""
         return {"api-key": api_key}
@@ -145,6 +150,13 @@ class APITestClient:
         return await self._client.get(
             self.users_route(user_id),
             headers=self.api_key_header(api_key),
+        )
+
+    async def get_me(self, api_key: str) -> Response:
+        """Получить собственный профиль пользователя."""
+        return await self._client.get(
+            self.me_route(),
+            headers=self.api_key_header(api_key)
         )
 
 
