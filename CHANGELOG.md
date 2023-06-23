@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.11.0 (2023-06-23)
+
+### Feature
+
+* #13 add route GET /api/users/me and logic ([`52cd745`](https://gitlab.skillbox.ru/vladimir_saltykov/python_advanced_diploma/-/commit/52cd745e2c925989f0a6ea398a9d95139f9d8011))
+
 ## v0.10.0 (2023-06-22)
 
 ### Feature
