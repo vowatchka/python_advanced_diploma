@@ -1,6 +1,7 @@
-from typing import Annotated, Optional
+from typing import Annotated, Optional, Union
 
 from fastapi import APIRouter, Depends, Path, Response
+from fastapi.responses import RedirectResponse
 from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -58,8 +59,8 @@ class UserGetter:
 
 async def get_following_or_none(
     db_session: Annotated[AsyncSession, Depends(models.db_session)],
+    auth_user: Annotated[models.User, Depends(get_authorized_user)],
     user: Annotated[models.User, Depends(UserGetter(raise_404=True))],
-    auth_user: Annotated[models.User, Depends(get_authorized_user)]
 ) -> Optional[models.Follower]:
     """Возвращает подписку одного пользователя на другого или `None`."""
     return await get_object_or_none(
@@ -73,12 +74,34 @@ async def get_following_or_none(
 
 
 @users_router.get(
+    "/me",
+    summary="Получить собственный профиль пользователя",
+    status_code=200,
+    response_model=UserResultOut,
+    response_description="Success",
+    tags=users_tags
+)
+async def get_me(
+    db_session: Annotated[AsyncSession, Depends(models.db_session)],
+    auth_user: Annotated[models.User, Depends(get_authorized_user)],
+) -> UserResultOut:
+    """Получить собственный профиль пользователя."""
+    user_getter = UserGetter(full_user=True, raise_404=True)
+
+    return UserResultOut(
+        result=True,
+        user=await user_getter(db_session, auth_user.id),
+    )
+
+
+@users_router.get(
     "/{user_id}",
     summary="Получить профиль пользователя",
     status_code=200,
     response_model=UserResultOut,
     response_description="Success",
     responses={
+        308: {"description": "Permanent Redirect"},
         404: {"model": HTTPErrorModel, "description": "User Not Found"},
     },
     tags=users_tags,
@@ -86,8 +109,13 @@ async def get_following_or_none(
 async def get_user(
     auth_user: Annotated[models.User, Depends(get_authorized_user)],  # `auth_user` нужен, чтобы 401 срабатывал раньше
     user: Annotated[models.User, Depends(UserGetter(full_user=True, raise_404=True))],
-) -> UserResultOut:
-    """Получить профиль пользователя"""
+    user_id: UserId,
+) -> Union[RedirectResponse, UserResultOut]:
+    """Получить профиль пользователя."""
+    if user_id == auth_user.id:
+        print(users_router.url_path_for(get_me.__name__))
+        return RedirectResponse("/api" + users_router.url_path_for(get_me.__name__), status_code=308)
+
     return UserResultOut(
         result=True,
         user=user,
@@ -149,7 +177,6 @@ async def follow_user(
 )
 async def unfollow_user(
     db_session: Annotated[AsyncSession, Depends(models.db_session)],
-    auth_user: Annotated[models.User, Depends(get_authorized_user)],  # `auth_user` нужен, чтобы 401 срабатывал раньше
     following: Annotated[Optional[models.Follower], Depends(get_following_or_none)],
 ) -> ResultModel:
     """Отписаться от пользователя."""
