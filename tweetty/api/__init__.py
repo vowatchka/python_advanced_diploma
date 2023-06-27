@@ -1,4 +1,6 @@
 from fastapi import FastAPI
+from fastapi.middleware import Middleware
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 import tweetty
@@ -10,6 +12,16 @@ from .routers import api_router
 
 
 def create_api() -> FastAPI:
+    middlewares = [
+        Middleware(
+            cls=CORSMiddleware,
+            allow_origins=["*"],
+            allow_credentials=True,
+            allow_methods=["*"],
+            allow_headers=["*"],
+        ),
+    ]
+
     api = FastAPI(
         title="Twetty API",
         description="Корпоративный сервис микроблогов",
@@ -22,6 +34,7 @@ def create_api() -> FastAPI:
         license_info={
             "name": tweetty.__license__,
         },
+        middleware=middlewares,
         exception_handlers={
             Exception: common_exception_handler,
         },
