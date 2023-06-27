@@ -1,0 +1,9 @@
+- name: Provision frontend
+  hosts: all
+  gather_facts: no
+  become: yes
+  become_method: sudo
+
+  tasks:
+    - include_tasks: ./install-docker.yml
+    - include_tasks: ./install-nginx.yml

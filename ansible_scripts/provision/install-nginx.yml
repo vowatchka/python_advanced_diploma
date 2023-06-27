@@ -1,0 +1,16 @@
+- name: Install docker-py
+  pip:
+    name:
+      - docker
+
+- name: Run nginx container
+  community.docker.docker_container:
+    image: "nginx:latest"
+    name: "nginx"
+    detach: true
+    restart_policy: always
+    ports:
+      - "80:80"
+    volumes:
+      - "./conf/frontend/nginx/default.conf:/etc/nginx/conf.d/default.conf"
+      - "./conf/frontend/web/:/var/www/tweetty/"
