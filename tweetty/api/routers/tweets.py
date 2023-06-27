@@ -2,10 +2,10 @@ import os
 from pathlib import Path as OsPath
 from typing import Annotated, Optional, Sequence
 
-from fastapi import APIRouter, Depends, Path, Response
-from sqlalchemy import and_, select, update
+from fastapi import APIRouter, Depends, Path, Query, Response
+from sqlalchemy import Select, and_, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import aliased, selectinload
 
 from ...db import models
 from ...shortcuts import get_object_or_none
@@ -207,7 +207,9 @@ async def unlike_tweet(
 )
 async def get_tweets(
     db_session: Annotated[AsyncSession, Depends(models.db_session)],
-    auth_user: Annotated[models.User, Depends(get_authorized_user)]
+    auth_user: Annotated[models.User, Depends(get_authorized_user)],
+    offset: Optional[int] = Query(default=None, description="Номер страницы", ge=1),
+    limit: Optional[int] = Query(default=None, description="Количество твитов на странице", ge=1),
 ) -> TweetListOut:
     """Получить ленту твитов пользователя."""
     await db_session.refresh(auth_user, attribute_names=["followings"])
@@ -215,15 +217,45 @@ async def get_tweets(
     user_ids = [auth_user.id]
     user_ids.extend([followed_user.user_id for followed_user in auth_user.followings])
 
+    tweet_author = aliased(models.User)
+    tweet_like = aliased(models.Like)
+    liker = aliased(models.User)
+
+    stmt: Select = (select(models.Tweet)
+                    .join(
+                        models.TweetMedia,
+                        models.TweetMedia.tweet_id == models.Tweet.id,
+                        isouter=True
+                    )
+                    .join(
+                        tweet_author,
+                        tweet_author.id == models.Tweet.user_id
+                    )
+                    .join(
+                        tweet_like,
+                        tweet_like.tweet_id == models.Tweet.id,
+                        isouter=True
+                    )
+                    .join(
+                        liker,
+                        liker.id == tweet_like.user_id,
+                        isouter=True
+                    )
+                    .where(
+                        models.Tweet.user_id.in_(user_ids)
+                    )
+                    .group_by(models.Tweet.id))
+    if offset is not None and limit is not None:
+        stmt = stmt.offset((offset - 1) * limit)  # type: ignore[operator]
+    if limit is not None:
+        stmt = stmt.limit(limit)
+    stmt = stmt.order_by(
+        func.count(tweet_like.id).desc(),
+        models.Tweet.posted_at.desc(),
+    )
+
     tweets_qs = await db_session.execute(
-        select(models.Tweet)
-        .where(
-            models.Tweet.user_id.in_(user_ids),
-        )
-        .order_by(
-            models.Tweet.posted_at.desc()
-        )
-        .options(
+        stmt.options(
             selectinload(models.Tweet.medias),
             selectinload(models.Tweet.user),
             selectinload(models.Tweet.likes).options(selectinload(models.Like.user))
@@ -231,7 +263,6 @@ async def get_tweets(
     )
 
     tweets: Sequence[models.Tweet] = tweets_qs.scalars().all()
-    tweets = sorted(tweets, key=lambda t: len(t.likes), reverse=True)
 
     return TweetListOut(
         result=True,
