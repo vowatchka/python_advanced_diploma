@@ -113,7 +113,6 @@ async def get_user(
 ) -> Union[RedirectResponse, UserResultOut]:
     """Получить профиль пользователя."""
     if user_id == auth_user.id:
-        print(users_router.url_path_for(get_me.__name__))
         return RedirectResponse("/api" + users_router.url_path_for(get_me.__name__), status_code=308)
 
     return UserResultOut(
