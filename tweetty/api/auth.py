@@ -32,6 +32,11 @@ async def get_authorized_user(
     db_session: Annotated[AsyncSession, Depends(models.db_session)],
 ) -> models.User:
     """Возвращает пользователя по ключу авторизации."""
+    # фикс для интеграции с фронтом
+    # в БД должен быть заранее создан пользователь с указанным api_key
+    if api_key == "test":
+        api_key = "t" * 30
+
     user_qs = await db_session.execute(
         select(models.User).where(models.User.api_key == api_key)
     )

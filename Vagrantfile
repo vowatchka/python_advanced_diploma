@@ -54,4 +54,18 @@ Vagrant.configure("2") do |config|
       ansible.playbook = "./ansible_scripts/provision/provision-backend.yml"
     end
   end
+
+  config.vm.define "frontend" do |frontend|
+    frontend.vm.hostname = "frontend"
+    frontend.vm.network "private_network", ip: "192.168.1.36"
+
+    frontend.vm.provider "virtualbox" do |v|
+      v.memory = 512
+      v.cpus = 1
+    end
+
+    frontend.vm.provision "ansible_local" do |ansible|
+      ansible.playbook = "./ansible_scripts/provision/provision-frontend.yml"
+    end
+  end
 end
