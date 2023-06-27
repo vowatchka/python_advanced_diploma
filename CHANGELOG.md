@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.12.0 (2023-06-27)
+
+### Feature
+
+* #33 add pagination for tweets ([`af49b50`](https://gitlab.skillbox.ru/vladimir_saltykov/python_advanced_diploma/-/commit/af49b50d0795e22665e5e86f0c675e912edb5c28))
+
 ## v0.11.3 (2023-06-27)
 
 ### Fix
