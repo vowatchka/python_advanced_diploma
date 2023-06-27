@@ -33,8 +33,8 @@ class UploadFileSizeValidator:
         self.min_size = min_size
         self.max_size = max_size
 
-    async def __call__(self, media: UploadFile):
-        file_data = await media.read()
+    async def __call__(self, file: UploadFile):
+        file_data = await file.read()
 
         if len(file_data) < self.min_size:
             raise http_exception(UploadFileSizeError(f"file size less than {self.min_size} bytes"), status_code=411)
@@ -43,17 +43,17 @@ class UploadFileSizeValidator:
 
         # не забываем сместить курсор в начало,
         # потому что ранее прочитали весь файл
-        await media.seek(0)
+        await file.seek(0)
 
-        return media
+        return file
 
 
 upload_file_size_validator = UploadFileSizeValidator()
 
 
-def generate_mediafile_name(media: UploadFile) -> str:
+def generate_mediafile_name(file: UploadFile) -> str:
     """Генерирует уникальное имя медиа-файла."""
-    return f"{uuid.uuid4()}{OsPath(media.filename).suffix}"
+    return f"{uuid.uuid4()}{OsPath(file.filename).suffix}"
 
 
 @backoff.on_exception(backoff.expo, (FileExistsError, PermissionError), max_tries=3, jitter=None)
@@ -99,7 +99,7 @@ async def save_mediafile_on_database(db_session: AsyncSession, new_media: models
 async def publish_new_media(
     db_session: Annotated[AsyncSession, Depends(models.db_session)],
     auth_user: Annotated[models.User, Depends(get_authorized_user)],
-    media: Annotated[UploadFile, Depends(upload_file_size_validator)],
+    file: Annotated[UploadFile, Depends(upload_file_size_validator)],
     mediafile_name: Annotated[str, Depends(generate_mediafile_name)],
 ) -> NewMediaOut:
     """Публикация нового медиа."""
@@ -107,7 +107,7 @@ async def publish_new_media(
 
     try:
         async with db_session.begin_nested():
-            await save_mediafile_on_disk(media_file, media.file)
+            await save_mediafile_on_disk(media_file, file.file)
 
             new_media = models.TweetMedia(
                 rel_uri=str(media_file),

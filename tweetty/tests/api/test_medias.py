@@ -51,12 +51,12 @@ def test_file_uploaded_path(test_file: tuple[str, BinaryIO], test_user: db_model
         shutil.rmtree(api_models.NewMediaIn.MediaConfig.upload_path)
 
 
-def generate_mediafile_name(media: UploadFile) -> str:
+def generate_mediafile_name(file: UploadFile) -> str:
     """
     Генерирует имя загружаемого файла для тестов.
     Данная функция должна использоваться для переопределения зависимостей приложения.
     """
-    return media.filename
+    return file.filename
 
 
 @pytest.mark.post_media

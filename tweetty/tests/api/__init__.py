@@ -113,7 +113,7 @@ class APITestClient:
         """Загрузить медиа."""
         return await self._client.post(
             self.medias_route(),
-            files={"media": files},
+            files={"file": files},
             headers=self.api_key_header(api_key),
         )
 
