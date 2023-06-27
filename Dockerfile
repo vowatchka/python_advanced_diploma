@@ -11,6 +11,7 @@ RUN apt-get update -y && \
     apt-get install -y python-dev-is-python3 libpq-dev
 
 COPY ./tweetty/tweetty_cli/main.sh /usr/bin/tweetty_cli
+RUN chmod +x /usr/bin/tweetty_cli
 
 COPY ./requirements.txt ./requirements.txt
 RUN python -m pip install --upgrade pip setuptools wheel \
