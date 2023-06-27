@@ -459,10 +459,10 @@ async def test_get_tweets_with_likes(api_client: APITestClient, test_user: db_mo
 
 
 @pytest.mark.get_tweets
-async def test_get_tweets_likes_sorted_desc(api_client: APITestClient, test_user: db_models.User,
-                                            test_tweet: db_models.Tweet, followed_user: db_models.User,
-                                            db_session: AsyncSession):
-    """Проверка, что твиты в ленте отсортированы по убыванию лайков."""
+async def test_get_tweets_posted_at_and_likes_sorted_desc(api_client: APITestClient, test_user: db_models.User,
+                                                          test_tweet: db_models.Tweet, followed_user: db_models.User,
+                                                          db_session: AsyncSession):
+    """Проверка, что твиты в ленте отсортированы по убыванию даты публикации и по убыванию количества лайков."""
     # создаем твит пользователю, на которого подпишемся
     followed_user_tweets = [
         db_models.Tweet(
@@ -510,9 +510,11 @@ async def test_get_tweets_likes_sorted_desc(api_client: APITestClient, test_user
             db_session.add_all(likes)
             await db_session.commit()
 
-        await db_session.refresh(tweet, attribute_names=["likes"])
+        await db_session.refresh(tweet, attribute_names=["likes", "posted_at"])
 
-    # сортируем твиты по убыванию количества лайков
+    # сначала сортируем твиты по убыванию даты публикации
+    tweets = sorted(tweets, key=lambda t: t.posted_at, reverse=True)
+    # затем сортируем твиты по убыванию количества лайков
     tweets = sorted(tweets, key=lambda t: len(t.likes), reverse=True)
 
     response = await api_client.get_tweets(test_user.api_key)
