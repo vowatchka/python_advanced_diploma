@@ -220,6 +220,9 @@ async def get_tweets(
         .where(
             models.Tweet.user_id.in_(user_ids),
         )
+        .order_by(
+            models.Tweet.posted_at.desc()
+        )
         .options(
             selectinload(models.Tweet.medias),
             selectinload(models.Tweet.user),
