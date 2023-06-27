@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.11.3 (2023-06-27)
+
+### Fix
+
+* Fix form field name for POST /api/medias ([`52b15ba`](https://gitlab.skillbox.ru/vladimir_saltykov/python_advanced_diploma/-/commit/52b15baf9a7bbc73b7b331fd5d25f44703965d2f))
+
 ## v0.11.2 (2023-06-27)
 
 ### Fix
