@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.11.1 (2023-06-27)
+
+### Fix
+
+* Add CORS policy ([`d240b71`](https://gitlab.skillbox.ru/vladimir_saltykov/python_advanced_diploma/-/commit/d240b71d1a975935fbc5637c30d11ee37c081e51))
+
 ## v0.11.0 (2023-06-23)
 
 ### Feature
