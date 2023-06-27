@@ -1,7 +1,7 @@
 import os
 import random
 from pathlib import PosixPath, WindowsPath
-from typing import BinaryIO, Union
+from typing import BinaryIO, Optional, Union
 
 import aiofiles
 import pytest
@@ -529,3 +529,45 @@ async def test_get_tweets_posted_at_and_likes_sorted_desc(api_client: APITestCli
 
         assert len(resp_tweet["likes"]) == len(tweet.likes)
         assert resp_tweet["id"] == tweet.id
+
+
+@pytest.mark.get_tweets
+@pytest.mark.parametrize(
+    "offset, limit",
+    [
+        (-1, None),
+        (0, None),
+        (None, -1),
+        (None, 0)
+    ]
+)
+async def test_get_tweets_invalid_pagination(api_client: APITestClient, test_user: db_models.User,
+                                             offset: Optional[int], limit: Optional[int]):
+    """Проверка ошибки при неверных данных пагинации."""
+    response = await api_client.get_tweets(test_user.api_key, offset=offset, limit=limit)
+    assert response.status_code == 422
+
+
+@pytest.mark.get_tweets
+async def test_get_tweets_pagination(api_client: APITestClient, test_user: db_models.User,
+                                     db_session: AsyncSession):
+    """Проверка пагинации."""
+    new_tweets = [
+        db_models.Tweet(
+            content=f"test{i}",
+            user_id=test_user.id,
+        )
+        for i in range(3)
+    ]
+    db_session.add_all(new_tweets)
+    await db_session.commit()
+
+    new_tweets = sorted(new_tweets, key=lambda t: t.posted_at, reverse=True)
+
+    limit = 1
+    for idx, tweet in enumerate(new_tweets):
+        response = await api_client.get_tweets(test_user.api_key, offset=idx + 1, limit=limit)
+        assert response.status_code == 200
+
+        resp = response.json()
+        assert_tweet_list(resp, limit)

@@ -1,4 +1,5 @@
 from typing import BinaryIO, Optional, TypedDict
+from urllib.parse import urlencode
 
 import pytest
 from httpx import AsyncClient, Response
@@ -47,11 +48,24 @@ class APITestClient:
         self._client = client
 
     @staticmethod
-    def tweets_route(tweet_id: Optional[int] = None) -> str:
+    def tweets_route(tweet_id: Optional[int] = None,
+                     offset: Optional[int] = None,
+                     limit: Optional[int] = None) -> str:
         """Возвращает роут твитов."""
         route = "/api/tweets"
         if tweet_id is not None:
-            route += f"/{tweet_id}"
+            return f"{route}/{tweet_id}"
+
+        get_params = dict()
+        if offset is not None:
+            get_params["offset"] = offset
+        if limit is not None:
+            get_params["limit"] = limit
+
+        query_string = urlencode(get_params)
+        if query_string:
+            return f"{route}?{query_string}"
+
         return route
 
     @staticmethod
@@ -95,10 +109,12 @@ class APITestClient:
             headers=self.api_key_header(api_key),
         )
 
-    async def get_tweets(self, api_key: str) -> Response:
+    async def get_tweets(self, api_key: str,
+                         offset: Optional[int] = None,
+                         limit: Optional[int] = None) -> Response:
         """Получить список твитов."""
         return await self._client.get(
-            self.tweets_route(),
+            self.tweets_route(offset=offset, limit=limit),
             headers=self.api_key_header(api_key),
         )
 
