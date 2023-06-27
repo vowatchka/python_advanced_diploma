@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.11.2 (2023-06-27)
+
+### Fix
+
+* Sort tweets also by posted_at ([`15c8fce`](https://gitlab.skillbox.ru/vladimir_saltykov/python_advanced_diploma/-/commit/15c8fce2b3036db70178b197389c48d868a55909))
+
 ## v0.11.1 (2023-06-27)
 
 ### Fix
