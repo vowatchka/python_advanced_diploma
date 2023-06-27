@@ -12,6 +12,7 @@ greenlet==2.0.2
 python-multipart==0.0.6
 pathlib==1.0.1
 aiofiles==23.1.0
+typer~=0.9
 pytest==7.3.0
 pytest-mock==3.10.0
 httpx==0.24.0

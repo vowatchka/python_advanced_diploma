@@ -23,13 +23,24 @@ def anyio_backend():
 
 
 @pytest.fixture(scope="session")
-async def engine(anyio_backend):
+def database_for_tests():
     test_pg_uri = pg.change_database_name(POSTGRES_URL, "test")
-    async_test_pg_uri = pg.make_async_postgres_url(test_pg_uri)
 
     # создаем тестовую БД
     if not sautils.database_exists(test_pg_uri):
         sautils.create_database(test_pg_uri)
+
+    yield test_pg_uri
+
+    # удаляем тестовую БД
+    if sautils.database_exists(test_pg_uri):
+        sautils.drop_database(test_pg_uri)
+
+
+@pytest.fixture(scope="session")
+async def engine(anyio_backend, database_for_tests: str):
+    database_for_tests = pg.change_database_name(POSTGRES_URL, "test")
+    async_test_pg_uri = pg.make_async_postgres_url(database_for_tests)
 
     test_engine = create_async_engine(
         async_test_pg_uri,
@@ -48,9 +59,6 @@ async def engine(anyio_backend):
         await conn.run_sync(models.Base.metadata.drop_all)
 
     await test_engine.dispose()
-    # удаляем тестовую БД
-    if sautils.database_exists(test_pg_uri):
-        sautils.drop_database(test_pg_uri)
 
 
 @pytest.fixture

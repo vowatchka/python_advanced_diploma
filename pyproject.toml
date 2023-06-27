@@ -50,4 +50,5 @@ markers=[
     "tweet_db_model: test Tweet database model",
     "tweet_media_db_model: test TweetMedia database model",
     "user_db_model: test User database model",
+    "cli: test work with tweetty_cli"
 ]

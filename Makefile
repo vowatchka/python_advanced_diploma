@@ -59,3 +59,7 @@ migrate: # apply migrations
 .PHONY: app-logs
 app-logs: # show application logs. Use ARGS for additional arguments
 	docker-compose logs api $(ARGS)
+
+.PHONY: tweetty_cli
+tweetty_cli: # run Tweetty CLI. Use ARGS for additional arguments
+	docker-compose exec api tweetty_cli $(ARGS)
