@@ -1,3 +1,2 @@
 -r ci.txt
 pre-commit~=3.3
-uvicorn~=0.21

@@ -11,3 +11,4 @@ psycopg2-binary~=2.9
 python-multipart~=0.0
 SQLAlchemy~=2.0
 typer~=0.9
+uvicorn~=0.21
