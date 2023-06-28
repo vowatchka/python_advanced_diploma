@@ -2,7 +2,7 @@ import secrets
 from typing import Annotated, Optional
 
 import typer
-from sqlalchemy import or_
+from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session
 
 from tweetty.settings import API_KEY_PREFIX, TOKEN_NBYTES
@@ -32,6 +32,23 @@ def _generate_api_key() -> str:
     return api_key
 
 
+def _print_user(user: db_models.User, show_api_key: bool = False, msg_prefix: str = ""):
+    msg = (f"Nickname: {user.nickname}\n"
+           f"First name: {user.first_name}\n"
+           f"Last name: {user.last_name}\n")
+    if show_api_key:
+        msg = f"{msg}Api Key: {user.api_key}\n"
+    if msg_prefix:
+        msg = f"{msg_prefix}{msg}"
+
+    print(msg)
+
+
+def _print_users(users: list[db_models.User], page: int, limit: int, show_api_key: bool = False):
+    print(f"Page {page}. Users per page: {limit}\n")
+    [_print_user(user, show_api_key=show_api_key) for user in users]
+
+
 @users_app.command(no_args_is_help=True)
 def add(
     nickname: Annotated[str, typer.Argument(help="User nickname")],
@@ -49,13 +66,7 @@ def add(
         session.add(new_user)
         session.commit()
 
-        print(
-            f"User added.\n"
-            f"Nickname: {new_user.nickname}\n"
-            f"First name: {new_user.first_name}\n"
-            f"Last name: {new_user.last_name}\n"
-            f"Api Key: {new_user.api_key}"
-        )
+        _print_user(new_user, show_api_key=True, msg_prefix="User added.\n")
 
 
 @users_app.command(no_args_is_help=True)
@@ -116,31 +127,20 @@ def new_api_key(
 @users_app.command(no_args_is_help=True)
 def get(
     nickname: Annotated[str, typer.Argument(help="User nickname")],
+    show_api_key: Annotated[bool, typer.Option("-a", "--show-api-key", help="Show Api Key")] = False
 ):
     """Get user"""
     with db_session() as session:
         user: db_models.User = _get_user_or_exit(session, nickname)
 
-        print(
-            f"Nickname: {user.nickname}\n"
-            f"First name: {user.first_name}\n"
-            f"Last name: {user.last_name}\n"
-            f"Api Key: {user.api_key}"
-        )
-
-
-def _print_users(users: list[db_models.User], page: int, limit: int):
-    print(f"Page {page}. Users per page: {limit}\n")
-    for user in users:
-        print(f"Nickname: {user.nickname}\n"
-              f"First name: {user.first_name}\n"
-              f"Last name: {user.last_name}\n")
+        _print_user(user, show_api_key=show_api_key)
 
 
 @users_app.command(name="list")
 def _list(
     page: Annotated[int, typer.Option("-p", "--page", help="Page")] = 1,
     limit: Annotated[int, typer.Option("-l", "--limit", help="Users per page")] = 10,
+    show_api_key: Annotated[bool, typer.Option("-a", "--show-api-key", help="Show Api Key")] = False
 ):
     """Get users list"""
     with db_session() as session:
@@ -152,7 +152,7 @@ def _list(
             .all()
         )
 
-        _print_users(users, page, limit)
+        _print_users(users, page, limit, show_api_key=show_api_key)
 
 
 @users_app.command(no_args_is_help=True)
@@ -160,6 +160,7 @@ def search(
     text: Annotated[str, typer.Argument(help="Searched text")],
     page: Annotated[int, typer.Option("-p", "--page", help="Page")] = 1,
     limit: Annotated[int, typer.Option("-l", "--limit", help="Users per page")] = 10,
+    show_api_key: Annotated[bool, typer.Option("-a", "--show-api-key", help="Show Api Key")] = False
 ):
     """Search users"""
     with db_session() as session:
@@ -180,4 +181,83 @@ def search(
             .all()
         )
 
-        _print_users(users, page, limit)
+        _print_users(users, page, limit, show_api_key=show_api_key)
+
+
+@users_app.command(no_args_is_help=True)
+def follow(
+    user_nickname: Annotated[str, typer.Argument(help="User nickname")],
+    follower_nickname: Annotated[str, typer.Argument(help="Follower nickname")],
+):
+    """Follow user to user"""
+    if user_nickname == follower_nickname:
+        print("Follow to himself is not acceptable")
+        raise typer.Exit(code=1)
+
+    with db_session() as session:
+        user = _get_user_or_exit(session, user_nickname)
+        follower = _get_user_or_exit(session, follower_nickname)
+
+        session.add(
+            db_models.Follower(
+                user_id=user.id,
+                follower_id=follower.id,
+            )
+        )
+        session.commit()
+
+        print(f"User {follower_nickname!r} is now follow to user {user_nickname!r}")
+
+
+@users_app.command(no_args_is_help=True)
+def unfollow(
+    user_nickname: Annotated[str, typer.Argument(help="User nickname")],
+    follower_nickname: Annotated[str, typer.Argument(help="Follower nickname")],
+):
+    """Unfollow user from user"""
+    with db_session() as session:
+        user = _get_user_or_exit(session, user_nickname)
+        follower = _get_user_or_exit(session, follower_nickname)
+
+        db_follower = (
+            session.query(db_models.Follower)
+            .where(
+                and_(
+                    db_models.Follower.user_id == user.id,
+                    db_models.Follower.follower_id == follower.id
+                )
+            )
+            .one_or_none()
+        )
+        if db_follower:
+            session.delete(db_follower)
+
+        if user_nickname != follower_nickname:
+            print(f"User {follower_nickname!r} is now unfollow from user {user_nickname!r}")
+
+
+@users_app.command(no_args_is_help=True)
+def followed(
+    user_nickname: Annotated[str, typer.Argument(help="User nickname")],
+    follower_nickname: Annotated[str, typer.Argument(help="Follower nickname")],
+):
+    """Check that user follow to user"""
+    with db_session() as session:
+        user = _get_user_or_exit(session, user_nickname)
+        follower = _get_user_or_exit(session, follower_nickname)
+
+        db_follower = (
+            session.query(db_models.Follower)
+            .where(
+                and_(
+                    db_models.Follower.user_id == user.id,
+                    db_models.Follower.follower_id == follower.id
+                )
+            )
+            .one_or_none()
+        )
+
+        if db_follower:
+            print("followed")
+        else:
+            print("not followed")
