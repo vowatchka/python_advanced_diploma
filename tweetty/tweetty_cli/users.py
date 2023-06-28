@@ -231,6 +231,7 @@ def unfollow(
         )
         if db_follower:
             session.delete(db_follower)
+            session.commit()
 
         if user_nickname != follower_nickname:
             print(f"User {follower_nickname!r} is now unfollow from user {user_nickname!r}")
