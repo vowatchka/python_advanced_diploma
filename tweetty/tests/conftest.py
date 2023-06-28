@@ -110,7 +110,8 @@ async def client(api):
 
 
 @pytest.fixture
-async def test_user(db_session):
+async def test_user(db_session: AsyncSession):
+    """Тестовый пользователь."""
     user = models.User(
         nickname="test1",
         api_key="a" * 30

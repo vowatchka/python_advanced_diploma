@@ -1,6 +1,6 @@
 import pytest
 from sqlalchemy import NullPool, create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import Session, sessionmaker
 
 from ...db import models
 
@@ -44,10 +44,24 @@ def db_session(conn):
 
 
 @pytest.fixture
-def test_user(db_session):
+def test_user(db_session: Session):
+    """Тестовый пользователь."""
     user = models.User(
         nickname="test1",
         api_key="a" * 30
+    )
+    db_session.add(user)
+    db_session.commit()
+
+    yield user
+
+
+@pytest.fixture
+def followed_user(db_session: Session):
+    """Тестовый пользователь, на которого подписываются."""
+    user = models.User(
+        nickname="Followed User",
+        api_key="f" * 30,
     )
     db_session.add(user)
     db_session.commit()
