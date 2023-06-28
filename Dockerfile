@@ -13,9 +13,10 @@ RUN apt-get update -y && \
 COPY ./tweetty/tweetty_cli/main.sh /usr/bin/tweetty_cli
 RUN chmod +x /usr/bin/tweetty_cli
 
-COPY ./requirements.txt ./requirements.txt
+ARG ENVIRONMENT=prod
+COPY ./requirements ./requirements
 RUN python -m pip install --upgrade pip setuptools wheel \
-    && python -m pip install -r requirements.txt \
+    && python -m pip install -r requirements/${ENVIRONMENT}.txt \
     && rm -rf /root/.cache/pip
 
 COPY ./tweetty ./tweetty
