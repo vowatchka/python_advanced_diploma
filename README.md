@@ -1,6 +1,6 @@
 # Финальная работа курса "Python Advanced". Корпоративный сервис микроблогов
 
-[![pipeline](https://gitlab.skillbox.ru/vladimir_saltykov/python_advanced_diploma/badges/master/pipeline.svg)](https://gitlab.skillbox.ru/vladimir_saltykov/python_advanced_diploma/-/pipelines)
+[![pipeline](https://gitlab.skillbox.ru/vladimir_saltykov/python_advanced_diploma/badges/master/pipeline.svg)](https://gitlab.skillbox.ru/vladimir_saltykov/python_advanced_diploma/-/pipelines) [![coverage](https://gitlab.skillbox.ru/vladimir_saltykov/python_advanced_diploma/badges/master/coverage.svg)](https://gitlab.skillbox.ru/vladimir_saltykov/python_advanced_diploma/-/commits/master) [![last release](https://gitlab.skillbox.ru/vladimir_saltykov/python_advanced_diploma/-/badges/release.svg)](https://gitlab.skillbox.ru/vladimir_saltykov/python_advanced_diploma/-/releases)
 
 ## Задача
 Для корпоративного сервиса микроблогов необходимо реализовать бэкенд приложения. Поскольку это корпоративная сеть, то функционал будет урезан относительно оригинала.
