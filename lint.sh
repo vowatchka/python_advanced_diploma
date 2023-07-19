@@ -9,6 +9,11 @@ isort --check --diff --color $1
 isort_result=$?
 echo
 
+echo -e "${COLOR_GREEN}Black linting...${NO_COLOR}"
+black --check --diff --color $1
+black_result=$?
+echo
+
 echo -e "${COLOR_GREEN}Flake8 linting...${NO_COLOR}"
 flake8 -v --color always $1
 flake8_result=$?
@@ -19,7 +24,7 @@ mypy --color-output $1
 mypy_result=$?
 echo
 
-if [[ isort_result -eq 0 && flake8_result -eq 0 && mypy_result -eq 0 ]]; then
+if [[ isort_result -eq 0 && black_result -eq 0 && flake8_result -eq 0 && mypy_result -eq 0 ]]; then
     echo -e "${COLOR_GREEN}OK${NO_COLOR}"
     exit 0
 else
