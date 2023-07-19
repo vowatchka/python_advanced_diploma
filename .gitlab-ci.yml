@@ -53,14 +53,19 @@ testing:
   services:
     - $POSTGRES_IMAGE
   script:
-    - pytest -v --color=yes --cov --cov-report=term-missing --cov-report=xml:coverage.xml $WORK_DIR
+    - pytest -v --color=yes --junitxml=report.xml --cov --cov-report=term-missing --cov-report=xml:coverage.xml $WORK_DIR
   # https://docs.gitlab.com/ee/ci/testing/test_coverage_visualization.html#python-example
   coverage: '/(?i)total.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'
   artifacts:
+    when: always
+    paths:
+      - report.xml
+      - coverage.xml
     reports:
       coverage_report:
         coverage_format: cobertura
         path: coverage.xml
+      junit: report.xml
 
 release:
   stage: release
