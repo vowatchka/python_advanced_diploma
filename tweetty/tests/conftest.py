@@ -39,8 +39,8 @@ def database_for_tests():
 
 @pytest.fixture(scope="session")
 async def engine(anyio_backend, database_for_tests: str):
-    database_for_tests = pg.change_database_name(POSTGRES_URL, "test")
-    async_test_pg_uri = pg.make_async_postgres_url(database_for_tests)
+    test_db = pg.change_database_name(POSTGRES_URL, "test")
+    async_test_pg_uri = pg.make_async_postgres_url(test_db)
 
     test_engine = create_async_engine(
         async_test_pg_uri,
@@ -112,10 +112,7 @@ async def client(api):
 @pytest.fixture
 async def test_user(db_session: AsyncSession):
     """Тестовый пользователь."""
-    user = models.User(
-        nickname="test1",
-        api_key="a" * 30
-    )
+    user = models.User(nickname="test1", api_key="a" * 30)
     db_session.add(user)
     await db_session.commit()
 

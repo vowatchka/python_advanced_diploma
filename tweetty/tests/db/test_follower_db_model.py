@@ -20,9 +20,7 @@ async def test_add_follower(db_session):
     db_session.add(new_follower)
     await db_session.commit()
 
-    queryset = await db_session.execute(
-        select(models.Follower).where(models.Follower.id == new_follower.id)
-    )
+    queryset = await db_session.execute(select(models.Follower).where(models.Follower.id == new_follower.id))
     added_follower: models.Follower = queryset.scalars().one()
     assert added_follower.id is not None
     assert added_follower.user_id == new_follower.user_id
@@ -46,9 +44,7 @@ async def test_cascade_delete_followers(db_session):
         ]
         db_session.add_all(followers)
 
-        followers_qs = await db_session.execute(
-            select(models.Follower).where(models.Follower.user_id == users[0].id)
-        )
+        followers_qs = await db_session.execute(select(models.Follower).where(models.Follower.user_id == users[0].id))
         assert len(followers_qs.scalars().all()) == len(followers)
 
         # удаляем одного подписчика
@@ -59,20 +55,14 @@ async def test_cascade_delete_followers(db_session):
 
         followers = [follower for follower in followers if follower.follower_id != users[2].id]
 
-        follower_qs = await db_session.execute(
-            select(models.Follower).where(models.Follower.user_id == users[0].id)
-        )
+        follower_qs = await db_session.execute(select(models.Follower).where(models.Follower.user_id == users[0].id))
         assert len(follower_qs.scalars().all()) == len(followers)
 
         # удаляем пользователя, на которого подписаны
-        following_qs = await db_session.execute(
-            select(models.Follower).where(models.Follower.user_id == users[0].id)
-        )
+        following_qs = await db_session.execute(select(models.Follower).where(models.Follower.user_id == users[0].id))
         await db_session.delete(following_qs.scalars().one())
 
-        follower_qs = await db_session.execute(
-            select(models.Follower).where(models.Follower.user_id == users[0].id)
-        )
+        follower_qs = await db_session.execute(select(models.Follower).where(models.Follower.user_id == users[0].id))
         assert len(follower_qs.scalars().all()) == 0
 
 
@@ -86,10 +76,7 @@ async def test_cannot_follow_for_self(db_session):
     await db_session.commit()
 
     with pytest.raises(IntegrityError, match=r".*CheckViolationError.*"):
-        new_follower = models.Follower(
-            user_id=user.id,
-            follower_id=user.id
-        )
+        new_follower = models.Follower(user_id=user.id, follower_id=user.id)
         db_session.add(new_follower)
         await db_session.commit()
 

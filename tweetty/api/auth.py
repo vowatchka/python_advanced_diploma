@@ -20,10 +20,7 @@ api_key_header = APIKeyHeader(
 async def get_api_key(api_key: Annotated[str, Security(api_key_header)]) -> str:
     """Возвращает ключ авторизации пользователя."""
     if not api_key:
-        raise http_exception(
-            UnauthorizedError("Missed APIKey header"),
-            status_code=401
-        )
+        raise http_exception(UnauthorizedError("Missed APIKey header"), status_code=401)
     return api_key
 
 
@@ -37,14 +34,9 @@ async def get_authorized_user(
     if api_key == "test":
         api_key = "t" * 30
 
-    user_qs = await db_session.execute(
-        select(models.User).where(models.User.api_key == api_key)
-    )
+    user_qs = await db_session.execute(select(models.User).where(models.User.api_key == api_key))
     user: models.User = user_qs.scalar_one_or_none()
 
     if not user:
-        raise http_exception(
-            UnauthorizedError("No user with such APIKey"),
-            status_code=401
-        )
+        raise http_exception(UnauthorizedError("No user with such APIKey"), status_code=401)
     return user

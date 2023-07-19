@@ -46,10 +46,7 @@ def db_session(conn):
 @pytest.fixture
 def test_user(db_session: Session):
     """Тестовый пользователь."""
-    user = models.User(
-        nickname="test1",
-        api_key="a" * 30
-    )
+    user = models.User(nickname="test1", api_key="a" * 30)
     db_session.add(user)
     db_session.commit()
 

@@ -111,10 +111,7 @@ class NewMediaIn(File):
     @classmethod
     def get_file_upload_path(cls, nickname: str, filename: str) -> str:
         """Возвращает путь к загружаемому файлу для пользователя."""
-        return cls.MediaConfig.upload_path_template.format(
-            nickname=nickname,
-            filename=filename
-        )
+        return cls.MediaConfig.upload_path_template.format(nickname=nickname, filename=filename)
 
 
 class NewMediaOut(ResultModel):
@@ -267,7 +264,7 @@ class TweetListOut(ResultModel):
                     ),
                 ],
             ).dict(by_alias=True)
-        ]
+        ],
     )
 
 

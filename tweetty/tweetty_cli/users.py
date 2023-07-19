@@ -14,9 +14,7 @@ users_app = typer.Typer(no_args_is_help=True, help="Manage users")
 
 
 def _get_user_or_exit(session: Session, nickname: str) -> db_models.User:
-    user: db_models.User = (session.query(db_models.User)
-                            .where(db_models.User.nickname == nickname)
-                            .one_or_none())
+    user: db_models.User = session.query(db_models.User).where(db_models.User.nickname == nickname).one_or_none()
 
     if not user:
         print(f"User {nickname!r} not found")
@@ -33,9 +31,7 @@ def _generate_api_key() -> str:
 
 
 def _print_user(user: db_models.User, show_api_key: bool = False, msg_prefix: str = ""):
-    msg = (f"Nickname: {user.nickname}\n"
-           f"First name: {user.first_name}\n"
-           f"Last name: {user.last_name}\n")
+    msg = f"Nickname: {user.nickname}\nFirst name: {user.first_name}\nLast name: {user.last_name}\n"
     if show_api_key:
         msg = f"{msg}Api Key: {user.api_key}\n"
     if msg_prefix:
@@ -58,10 +54,7 @@ def add(
     """Add new user"""
     with db_session() as session:
         new_user = db_models.User(
-            nickname=nickname,
-            first_name=first_name,
-            last_name=last_name,
-            api_key=_generate_api_key()
+            nickname=nickname, first_name=first_name, last_name=last_name, api_key=_generate_api_key()
         )
         session.add(new_user)
         session.commit()
@@ -75,9 +68,7 @@ def remove(
 ):
     """Remove user"""
     with db_session() as session:
-        (session.query(db_models.User)
-         .where(db_models.User.nickname == nickname)
-         .delete())
+        (session.query(db_models.User).where(db_models.User.nickname == nickname).delete())
 
         session.commit()
         print(f"User {nickname!r} deleted")
@@ -127,7 +118,7 @@ def new_api_key(
 @users_app.command(no_args_is_help=True)
 def get(
     nickname: Annotated[str, typer.Argument(help="User nickname")],
-    show_api_key: Annotated[bool, typer.Option("-a", "--show-api-key", help="Show Api Key")] = False
+    show_api_key: Annotated[bool, typer.Option("-a", "--show-api-key", help="Show Api Key")] = False,
 ):
     """Get user"""
     with db_session() as session:
@@ -140,7 +131,7 @@ def get(
 def _list(
     page: Annotated[int, typer.Option("-p", "--page", help="Page")] = 1,
     limit: Annotated[int, typer.Option("-l", "--limit", help="Users per page")] = 10,
-    show_api_key: Annotated[bool, typer.Option("-a", "--show-api-key", help="Show Api Key")] = False
+    show_api_key: Annotated[bool, typer.Option("-a", "--show-api-key", help="Show Api Key")] = False,
 ):
     """Get users list"""
     with db_session() as session:
@@ -160,7 +151,7 @@ def search(
     text: Annotated[str, typer.Argument(help="Searched text")],
     page: Annotated[int, typer.Option("-p", "--page", help="Page")] = 1,
     limit: Annotated[int, typer.Option("-l", "--limit", help="Users per page")] = 10,
-    show_api_key: Annotated[bool, typer.Option("-a", "--show-api-key", help="Show Api Key")] = False
+    show_api_key: Annotated[bool, typer.Option("-a", "--show-api-key", help="Show Api Key")] = False,
 ):
     """Search users"""
     with db_session() as session:
@@ -172,7 +163,7 @@ def search(
                 or_(
                     db_models.User.nickname.like(like_expr),
                     db_models.User.first_name.like(like_expr),
-                    db_models.User.last_name.like(like_expr)
+                    db_models.User.last_name.like(like_expr),
                 )
             )
             .order_by(db_models.User.nickname)
@@ -221,12 +212,7 @@ def unfollow(
 
         db_follower = (
             session.query(db_models.Follower)
-            .where(
-                and_(
-                    db_models.Follower.user_id == user.id,
-                    db_models.Follower.follower_id == follower.id
-                )
-            )
+            .where(and_(db_models.Follower.user_id == user.id, db_models.Follower.follower_id == follower.id))
             .one_or_none()
         )
         if db_follower:
@@ -249,12 +235,7 @@ def followed(
 
         db_follower = (
             session.query(db_models.Follower)
-            .where(
-                and_(
-                    db_models.Follower.user_id == user.id,
-                    db_models.Follower.follower_id == follower.id
-                )
-            )
+            .where(and_(db_models.Follower.user_id == user.id, db_models.Follower.follower_id == follower.id))
             .one_or_none()
         )
 

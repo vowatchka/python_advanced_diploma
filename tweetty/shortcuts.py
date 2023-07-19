@@ -7,9 +7,7 @@ from .api.exceptions import NotFoundError, http_exception
 from .typing import SAModelObject
 
 
-async def get_object_or_none(db_session: AsyncSession,
-                             model: type[SAModelObject],
-                             *whereclause: Any) -> SAModelObject:
+async def get_object_or_none(db_session: AsyncSession, model: type[SAModelObject], *whereclause: Any) -> SAModelObject:
     """Возвращает объект записи в БД или `None."""
     stmt = select(model)
     if whereclause:
@@ -19,10 +17,9 @@ async def get_object_or_none(db_session: AsyncSession,
     return object_qs.scalar_one_or_none()
 
 
-async def get_object_or_404(db_session: AsyncSession,
-                            model: type[SAModelObject],
-                            *whereclause: Any,
-                            message_404: Optional[str] = None) -> SAModelObject:
+async def get_object_or_404(
+    db_session: AsyncSession, model: type[SAModelObject], *whereclause: Any, message_404: Optional[str] = None
+) -> SAModelObject:
     """Возвращает объект записи в БД или возбуждает исключение `404 Not Found`."""
     obj = await get_object_or_none(db_session, model, *whereclause)
     if obj is None:

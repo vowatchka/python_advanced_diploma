@@ -27,7 +27,7 @@ async def followed_user(db_session: AsyncSession):
     [
         "",
         "no" * 15,
-    ]
+    ],
 )
 async def test_follow_auth(api_client: APITestClient, followed_user: db_models.User, api_key: str):
     """Проверка аворизации для подписки на пользователя."""
@@ -37,8 +37,9 @@ async def test_follow_auth(api_client: APITestClient, followed_user: db_models.U
 
 
 @pytest.mark.post_follow
-async def test_follow(api_client: APITestClient, test_user: db_models.User, followed_user: db_models.User,
-                      db_session: AsyncSession):
+async def test_follow(
+    api_client: APITestClient, test_user: db_models.User, followed_user: db_models.User, db_session: AsyncSession
+):
     """Проверка подписи на другого пользователя."""
     response = await api_client.follow(followed_user.id, test_user.api_key)
     assert response.status_code == 201
@@ -48,12 +49,8 @@ async def test_follow(api_client: APITestClient, test_user: db_models.User, foll
 
     # проверяем, что подписка есть
     follow_qs = await db_session.execute(
-        select(db_models.Follower)
-        .where(
-            and_(
-                db_models.Follower.user_id == followed_user.id,
-                db_models.Follower.follower_id == test_user.id
-            )
+        select(db_models.Follower).where(
+            and_(db_models.Follower.user_id == followed_user.id, db_models.Follower.follower_id == test_user.id)
         )
     )
     follows = follow_qs.scalars().all()
@@ -62,8 +59,9 @@ async def test_follow(api_client: APITestClient, test_user: db_models.User, foll
 
 
 @pytest.mark.post_follow
-async def test_follow_again(api_client: APITestClient, test_user: db_models.User, followed_user: db_models.User,
-                            db_session: AsyncSession):
+async def test_follow_again(
+    api_client: APITestClient, test_user: db_models.User, followed_user: db_models.User, db_session: AsyncSession
+):
     """Проверка подписи на другого пользователя, на которого уже подписаны."""
     # подписываемся
     response = await api_client.follow(followed_user.id, test_user.api_key)
@@ -78,12 +76,8 @@ async def test_follow_again(api_client: APITestClient, test_user: db_models.User
 
     # проверяем, что подписка по-прежнему одина
     follow_qs = await db_session.execute(
-        select(db_models.Follower)
-        .where(
-            and_(
-                db_models.Follower.user_id == followed_user.id,
-                db_models.Follower.follower_id == test_user.id
-            )
+        select(db_models.Follower).where(
+            and_(db_models.Follower.user_id == followed_user.id, db_models.Follower.follower_id == test_user.id)
         )
     )
     follows = follow_qs.scalars().all()
@@ -113,7 +107,7 @@ async def test_follow_not_existed_user(api_client: APITestClient, test_user: db_
     [
         "",
         "no" * 15,
-    ]
+    ],
 )
 async def test_unfollow_auth(api_client: APITestClient, followed_user: db_models.User, api_key: str):
     """Проверка авторизации для отписки от пользователя."""
@@ -123,8 +117,9 @@ async def test_unfollow_auth(api_client: APITestClient, followed_user: db_models
 
 
 @pytest.mark.delete_follow
-async def test_unfollow(api_client: APITestClient, test_user: db_models.User, followed_user: db_models.User,
-                        db_session: AsyncSession):
+async def test_unfollow(
+    api_client: APITestClient, test_user: db_models.User, followed_user: db_models.User, db_session: AsyncSession
+):
     """Проверка отписки от другого пользователя."""
     # создаем подписку
     follow = db_models.Follower(
@@ -142,24 +137,22 @@ async def test_unfollow(api_client: APITestClient, test_user: db_models.User, fo
 
     # проверяем, что подписки нет
     follow_qs = await db_session.execute(
-        select(db_models.Follower)
-        .where(
-            and_(
-                db_models.Follower.user_id == followed_user.id,
-                db_models.Follower.follower_id == test_user.id
-            )
+        select(db_models.Follower).where(
+            and_(db_models.Follower.user_id == followed_user.id, db_models.Follower.follower_id == test_user.id)
         )
     )
     assert len(follow_qs.scalars().all()) == 0
 
 
 @pytest.mark.delete_follow
-@pytest.mark.parametrize(
-    "follow_himself",
-    [True, False]
-)
-async def test_unfollow_again(api_client: APITestClient, test_user: db_models.User, followed_user: db_models.User,
-                              db_session: AsyncSession, follow_himself: bool):
+@pytest.mark.parametrize("follow_himself", [True, False])
+async def test_unfollow_again(
+    api_client: APITestClient,
+    test_user: db_models.User,
+    followed_user: db_models.User,
+    db_session: AsyncSession,
+    follow_himself: bool,
+):
     """
     Проверка отписки от другого пользователя, от которого уже отписаны.
 

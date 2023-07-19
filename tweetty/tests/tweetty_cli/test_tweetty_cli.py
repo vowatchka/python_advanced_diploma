@@ -31,7 +31,7 @@ def cli_runner():
         ("test1", "Test", None),
         ("test1", None, "Test"),
         ("test1", "Test", "Test"),
-    ]
+    ],
 )
 def test_add_user(cli_runner: CliRunner, nickname: str, first_name: Optional[str], last_name: Optional[str]):
     """Проверка добавления пользователя."""
@@ -78,10 +78,11 @@ def test_remove_user_idempotent(cli_runner: CliRunner, test_user: db_models.User
         ("test1", "Test", None),
         ("test1", None, "Test"),
         ("test1", "Test", "Test"),
-    ]
+    ],
 )
-def test_update_user(cli_runner: CliRunner, db_session: Session, nickname: str, first_name: Optional[str],
-                     last_name: Optional[str]):
+def test_update_user(
+    cli_runner: CliRunner, db_session: Session, nickname: str, first_name: Optional[str], last_name: Optional[str]
+):
     """Проверка обновления пользователя."""
     user = db_models.User(
         nickname=nickname,
@@ -155,10 +156,7 @@ def test_new_api_key_not_existed_user(cli_runner: CliRunner):
     assert f"User {nickname!r} not found" in result.stdout
 
 
-@pytest.mark.parametrize(
-    "show_api_key",
-    [True, False]
-)
+@pytest.mark.parametrize("show_api_key", [True, False])
 def test_get_user(cli_runner: CliRunner, test_user: db_models.User, show_api_key: bool):
     """Проверка получения пользоватля."""
     args = ["get", test_user.nickname]
@@ -185,10 +183,7 @@ def test_get_not_existed_user(cli_runner: CliRunner):
     assert f"User {nickname!r} not found" in result.stdout
 
 
-@pytest.mark.parametrize(
-    "show_api_key",
-    [True, False]
-)
+@pytest.mark.parametrize("show_api_key", [True, False])
 def test_list_users(cli_runner: CliRunner, db_session: Session, show_api_key: bool):
     """Проверка получения списка пользователей."""
     new_users = sorted(
@@ -199,7 +194,7 @@ def test_list_users(cli_runner: CliRunner, db_session: Session, show_api_key: bo
             )
             for i in range(3)
         ],
-        key=lambda user: user.nickname
+        key=lambda user: user.nickname,
     )
     db_session.add_all(new_users)
     db_session.commit()
@@ -221,10 +216,7 @@ def test_list_users(cli_runner: CliRunner, db_session: Session, show_api_key: bo
             assert user.api_key in result.stdout
 
 
-@pytest.mark.parametrize(
-    "show_api_key",
-    [True, False]
-)
+@pytest.mark.parametrize("show_api_key", [True, False])
 def test_list_users_with_page_and_limit(cli_runner: CliRunner, db_session: Session, show_api_key: bool):
     """Проверка получения списка пользователей с постраничной навигацией."""
     new_users = sorted(
@@ -235,7 +227,7 @@ def test_list_users_with_page_and_limit(cli_runner: CliRunner, db_session: Sessi
             )
             for i in range(3)
         ],
-        key=lambda user: user.nickname
+        key=lambda user: user.nickname,
     )
     db_session.add_all(new_users)
     db_session.commit()
@@ -262,10 +254,7 @@ def test_list_users_with_page_and_limit(cli_runner: CliRunner, db_session: Sessi
             assert user.api_key in result.stdout
 
 
-@pytest.mark.parametrize(
-    "show_api_key",
-    [True, False]
-)
+@pytest.mark.parametrize("show_api_key", [True, False])
 def test_search_users(cli_runner: CliRunner, db_session: Session, show_api_key: bool):
     """Проверка поиска пользователей."""
     new_users = [
@@ -294,12 +283,15 @@ def test_search_users(cli_runner: CliRunner, db_session: Session, show_api_key: 
     searched_expr = "test_"
     founded_users = sorted(
         [
-            user for user in new_users
-            if (searched_expr in user.nickname
+            user
+            for user in new_users
+            if (
+                searched_expr in user.nickname
                 or (user.first_name and searched_expr in user.first_name)
-                or (user.last_name and searched_expr in user.last_name))
+                or (user.last_name and searched_expr in user.last_name)
+            )
         ],
-        key=lambda user: user.nickname
+        key=lambda user: user.nickname,
     )
 
     args = ["search", searched_expr]
@@ -319,10 +311,7 @@ def test_search_users(cli_runner: CliRunner, db_session: Session, show_api_key: 
             assert user.api_key in result.stdout
 
 
-@pytest.mark.parametrize(
-    "show_api_key",
-    [True, False]
-)
+@pytest.mark.parametrize("show_api_key", [True, False])
 def test_search_users_with_page_and_limit(cli_runner: CliRunner, db_session: Session, show_api_key: bool):
     """Проверка поиска пользователей с постраничной навигацией."""
     new_users = [
@@ -351,12 +340,15 @@ def test_search_users_with_page_and_limit(cli_runner: CliRunner, db_session: Ses
     searched_expr = "test_"
     founded_users = sorted(
         [
-            user for user in new_users
-            if (searched_expr in user.nickname
+            user
+            for user in new_users
+            if (
+                searched_expr in user.nickname
                 or (user.first_name and searched_expr in user.first_name)
-                or (user.last_name and searched_expr in user.last_name))
+                or (user.last_name and searched_expr in user.last_name)
+            )
         ],
-        key=lambda user: user.nickname
+        key=lambda user: user.nickname,
     )
 
     for idx, user in enumerate(founded_users):
@@ -381,21 +373,19 @@ def test_search_users_with_page_and_limit(cli_runner: CliRunner, db_session: Ses
             assert user.api_key in result.stdout
 
 
-def test_follow_to_user(cli_runner: CliRunner, test_user: db_models.User, followed_user: db_models.User,
-                        db_session: Session):
+def test_follow_to_user(
+    cli_runner: CliRunner, test_user: db_models.User, followed_user: db_models.User, db_session: Session
+):
     """Проверка подписки одного пользователя на другого."""
     result = cli_runner.invoke(users.users_app, ["follow", followed_user.nickname, test_user.nickname])
     assert result.exit_code == 0
 
     assert f"User {test_user.nickname!r} is now follow to user {followed_user.nickname!r}" in result.stdout
 
-    follower_qs = (
-        db_session.query(db_models.Follower)
-        .where(
-            and_(
-                db_models.Follower.user_id == followed_user.id,
-                db_models.Follower.follower_id == test_user.id,
-            )
+    follower_qs = db_session.query(db_models.Follower).where(
+        and_(
+            db_models.Follower.user_id == followed_user.id,
+            db_models.Follower.follower_id == test_user.id,
         )
     )
     assert follower_qs.one_or_none() is not None
@@ -414,7 +404,7 @@ def test_follow_to_self(cli_runner: CliRunner, test_user: db_models.User):
     [
         ("test", "not_existed"),
         ("not_existed", "test"),
-    ]
+    ],
 )
 def test_follow_to_not_existed_users(cli_runner: CliRunner, test_user: db_models.User, user: str, follower: str):
     """Проверка невозможности подписаться на несуществующего пользователя."""
@@ -428,8 +418,9 @@ def test_follow_to_not_existed_users(cli_runner: CliRunner, test_user: db_models
     assert f"User {expected_nickname!r} not found" in result.stdout
 
 
-def test_unfollow_from_user(cli_runner: CliRunner, test_user: db_models.User, followed_user: db_models.User,
-                            db_session: Session):
+def test_unfollow_from_user(
+    cli_runner: CliRunner, test_user: db_models.User, followed_user: db_models.User, db_session: Session
+):
     """Проверка отписки одного пользователя от другого."""
     db_session.add(
         db_models.Follower(
@@ -444,13 +435,10 @@ def test_unfollow_from_user(cli_runner: CliRunner, test_user: db_models.User, fo
 
     assert f"User {test_user.nickname!r} is now unfollow from user {followed_user.nickname!r}" in result.stdout
 
-    follower_qs = (
-        db_session.query(db_models.Follower)
-        .where(
-            and_(
-                db_models.Follower.user_id == followed_user.id,
-                db_models.Follower.follower_id == test_user.id,
-            )
+    follower_qs = db_session.query(db_models.Follower).where(
+        and_(
+            db_models.Follower.user_id == followed_user.id,
+            db_models.Follower.follower_id == test_user.id,
         )
     )
     assert follower_qs.one_or_none() is None
@@ -469,7 +457,7 @@ def test_unfollow_from_self(cli_runner: CliRunner, test_user: db_models.User):
     [
         ("test", "not_existed"),
         ("not_existed", "test"),
-    ]
+    ],
 )
 def test_unfollow_from_not_existed_users(cli_runner: CliRunner, test_user: db_models.User, user: str, follower: str):
     """Проверка невозможности отписаться от несуществующего пользователя."""
@@ -483,8 +471,9 @@ def test_unfollow_from_not_existed_users(cli_runner: CliRunner, test_user: db_mo
     assert f"User {expected_nickname!r} not found" in result.stdout
 
 
-def test_unfollow_from_user_again(cli_runner: CliRunner, test_user: db_models.User, followed_user: db_models.User,
-                                  db_session: Session):
+def test_unfollow_from_user_again(
+    cli_runner: CliRunner, test_user: db_models.User, followed_user: db_models.User, db_session: Session
+):
     """Проверка идемпотентности команды отписки одного пользователя от другого."""
     db_session.add(
         db_models.Follower(
@@ -501,12 +490,14 @@ def test_unfollow_from_user_again(cli_runner: CliRunner, test_user: db_models.Us
         assert f"User {test_user.nickname!r} is now unfollow from user {followed_user.nickname!r}" in result.stdout
 
 
-@pytest.mark.parametrize(
-    "has_follow",
-    [True, False]
-)
-def test_followed(cli_runner: CliRunner, test_user: db_models.User, followed_user: db_models.User,
-                  db_session: Session, has_follow: bool):
+@pytest.mark.parametrize("has_follow", [True, False])
+def test_followed(
+    cli_runner: CliRunner,
+    test_user: db_models.User,
+    followed_user: db_models.User,
+    db_session: Session,
+    has_follow: bool,
+):
     """Проверка проверки наличия подписки одного пользователя на другого."""
     if has_follow:
         db_session.add(
@@ -531,7 +522,7 @@ def test_followed(cli_runner: CliRunner, test_user: db_models.User, followed_use
     [
         ("test", "not_existed"),
         ("not_existed", "test"),
-    ]
+    ],
 )
 def test_followed_not_existed_users(cli_runner: CliRunner, test_user: db_models.User, user: str, follower: str):
     """Проверка ошибки проверки подписки на несуществующего пользователя."""

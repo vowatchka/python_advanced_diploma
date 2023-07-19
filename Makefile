@@ -52,6 +52,10 @@ lint: # run linting
 isort: # run python isort module
 	docker-compose exec api isort --color ./tweetty
 
+.PHONY: black
+black: # run python black module
+	docker-compose exec api black --color ./tweetty
+
 .PHONY: migrate
 migrate: # apply migrations
 	docker-compose exec api /bin/bash -c "cd ./tweetty && alembic upgrade head"

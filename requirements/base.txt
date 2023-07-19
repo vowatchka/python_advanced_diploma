@@ -8,6 +8,7 @@ greenlet~=2.0
 httpx~=0.24
 pathlib~=1.0
 psycopg2-binary~=2.9
+pydantic~=1.10
 python-multipart~=0.0
 SQLAlchemy~=2.0
 typer~=0.9

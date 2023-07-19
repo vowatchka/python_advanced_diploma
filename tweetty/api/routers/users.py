@@ -9,8 +9,13 @@ from sqlalchemy.orm import selectinload
 from ...db import models
 from ...shortcuts import get_object_or_none
 from ..auth import get_authorized_user
-from ..exceptions import (HTTP_406_NOT_ACCEPTABLE_DESC, HTTP_500_INTERNAL_SERVER_ERROR_DESC, NotAcceptableError,
-                          NotFoundError, http_exception,)
+from ..exceptions import (
+    HTTP_406_NOT_ACCEPTABLE_DESC,
+    HTTP_500_INTERNAL_SERVER_ERROR_DESC,
+    NotAcceptableError,
+    NotFoundError,
+    http_exception,
+)
 from ..models import HTTPErrorModel, ResultModel, UserResultOut
 
 users_router = APIRouter(
@@ -37,8 +42,9 @@ class UserGetter:
         self._full_user = full_user
         self._raise_404 = raise_404
 
-    async def __call__(self, db_session: Annotated[AsyncSession, Depends(models.db_session)],
-                       user_id: UserId) -> Optional[models.User]:
+    async def __call__(
+        self, db_session: Annotated[AsyncSession, Depends(models.db_session)], user_id: UserId
+    ) -> Optional[models.User]:
         if not self._full_user:
             user = await get_object_or_none(db_session, models.User, models.User.id == user_id)
         else:
@@ -66,10 +72,7 @@ async def get_following_or_none(
     return await get_object_or_none(
         db_session,
         models.Follower,
-        and_(
-            models.Follower.user_id == user.id,
-            models.Follower.follower_id == auth_user.id
-        )
+        and_(models.Follower.user_id == user.id, models.Follower.follower_id == auth_user.id),
     )
 
 
@@ -79,7 +82,7 @@ async def get_following_or_none(
     status_code=200,
     response_model=UserResultOut,
     response_description="Success",
-    tags=users_tags
+    tags=users_tags,
 )
 async def get_me(
     db_session: Annotated[AsyncSession, Depends(models.db_session)],
@@ -144,19 +147,13 @@ async def follow_user(
     """Подписаться на пользователя."""
     if user_id == auth_user.id:
         # подписаться на себя же нельзя
-        raise http_exception(
-            NotAcceptableError("following to himself is not acceptable"),
-            status_code=406
-        )
+        raise http_exception(NotAcceptableError("following to himself is not acceptable"), status_code=406)
     elif following is not None:
         # пользователь уже подписан на запрошенного пользователя
         response.status_code = 200
     else:
         # подписываем одного пользователя на другого
-        following = models.Follower(
-            user_id=user_id,
-            follower_id=auth_user.id
-        )
+        following = models.Follower(user_id=user_id, follower_id=auth_user.id)
         db_session.add(following)
         await db_session.commit()
 

@@ -17,9 +17,7 @@ async def test_add_tweet(db_session):
     db_session.add(new_tweet)
     await db_session.commit()
 
-    queryset = await db_session.execute(
-        select(models.Tweet).where(models.Tweet.id == new_tweet.id)
-    )
+    queryset = await db_session.execute(select(models.Tweet).where(models.Tweet.id == new_tweet.id))
     added_tweet: models.Tweet = queryset.scalars().one()
     assert added_tweet.id is not None
     assert added_tweet.content == new_tweet.content
@@ -41,17 +39,11 @@ async def test_cascade_delete_tweets(db_session):
         ]
         db_session.add_all(tweets)
 
-        tweet_qs = await db_session.execute(
-            select(models.Tweet).where(models.Tweet.user_id == user.id)
-        )
+        tweet_qs = await db_session.execute(select(models.Tweet).where(models.Tweet.user_id == user.id))
         assert len(tweet_qs.scalars().all()) == len(tweets)
 
-        user_qs = await db_session.execute(
-            select(models.User).where(models.User.id == user.id)
-        )
+        user_qs = await db_session.execute(select(models.User).where(models.User.id == user.id))
         await db_session.delete(user_qs.scalars().one())
 
-        tweet_qs = await db_session.execute(
-            select(models.Tweet).where(models.Tweet.user_id == user.id)
-        )
+        tweet_qs = await db_session.execute(select(models.Tweet).where(models.Tweet.user_id == user.id))
         assert len(tweet_qs.scalars().all()) == 0

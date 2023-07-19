@@ -8,7 +8,12 @@ no_site_packages=true
 check_untyped_defs=true
 exclude="^tweetty/migrations"
 
+[tool.black]
+line-length=120
+exclude="tweetty/migrations"
+
 [tool.isort]
+profile="black"
 line_length=120
 include_trailing_comma=true
 group_by_package=true

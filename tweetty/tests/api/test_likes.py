@@ -27,7 +27,7 @@ async def liker_user(db_session: AsyncSession):
     [
         "",
         "no" * 15,
-    ]
+    ],
 )
 async def test_like_auth(api_client: APITestClient, api_key: str, test_tweet: db_models.Tweet):
     """Проверка авторизации для добавления лайка."""
@@ -37,12 +37,15 @@ async def test_like_auth(api_client: APITestClient, api_key: str, test_tweet: db
 
 
 @pytest.mark.post_like
-@pytest.mark.parametrize(
-    "own_tweet",
-    [True, False]
-)
-async def test_like_tweet(api_client: APITestClient, test_user: db_models.User, test_tweet: db_models.Tweet,
-                          liker_user: db_models.User, own_tweet: bool, db_session: AsyncSession):
+@pytest.mark.parametrize("own_tweet", [True, False])
+async def test_like_tweet(
+    api_client: APITestClient,
+    test_user: db_models.User,
+    test_tweet: db_models.Tweet,
+    liker_user: db_models.User,
+    own_tweet: bool,
+    db_session: AsyncSession,
+):
     """
     Проверка добавления лайка твит.
 
@@ -60,13 +63,7 @@ async def test_like_tweet(api_client: APITestClient, test_user: db_models.User, 
     # проверяем, что лайк добавился на твит и от имени
     # пользователя, который лайкал
     like_qs = await db_session.execute(
-        select(db_models.Like)
-        .where(
-            and_(
-                db_models.Like.tweet_id == test_tweet.id,
-                db_models.Like.user_id == user.id
-            )
-        )
+        select(db_models.Like).where(and_(db_models.Like.tweet_id == test_tweet.id, db_models.Like.user_id == user.id))
     )
     likes = like_qs.scalars().all()
     assert len(likes) == 1
@@ -74,12 +71,15 @@ async def test_like_tweet(api_client: APITestClient, test_user: db_models.User, 
 
 
 @pytest.mark.post_like
-@pytest.mark.parametrize(
-    "own_tweet",
-    [True, False]
-)
-async def test_like_tweet_again(api_client: APITestClient, test_user: db_models.User, test_tweet: db_models.Tweet,
-                                liker_user: db_models.User, own_tweet: bool, db_session: AsyncSession):
+@pytest.mark.parametrize("own_tweet", [True, False])
+async def test_like_tweet_again(
+    api_client: APITestClient,
+    test_user: db_models.User,
+    test_tweet: db_models.Tweet,
+    liker_user: db_models.User,
+    own_tweet: bool,
+    db_session: AsyncSession,
+):
     """
     Проверка повторного лайка твита, который пользователь уже лайкнул.
 
@@ -101,13 +101,7 @@ async def test_like_tweet_again(api_client: APITestClient, test_user: db_models.
 
     # проверяем, что лайк от пользователя по-прежнему один
     like_qs = await db_session.execute(
-        select(db_models.Like)
-        .where(
-            and_(
-                db_models.Like.tweet_id == test_tweet.id,
-                db_models.Like.user_id == user.id
-            )
-        )
+        select(db_models.Like).where(and_(db_models.Like.tweet_id == test_tweet.id, db_models.Like.user_id == user.id))
     )
     likes = like_qs.scalars().all()
     assert len(likes) == 1
@@ -129,7 +123,7 @@ async def test_like_not_existed_tweet(api_client: APITestClient, test_user: db_m
     [
         "",
         "no" * 15,
-    ]
+    ],
 )
 async def test_unlike_auth(api_client: APITestClient, api_key: str, test_tweet: db_models.Tweet):
     """Проверка авторизации при удалении лайка."""
@@ -139,12 +133,15 @@ async def test_unlike_auth(api_client: APITestClient, api_key: str, test_tweet: 
 
 
 @pytest.mark.delete_like
-@pytest.mark.parametrize(
-    "own_tweet",
-    [True, False]
-)
-async def test_unlike_tweet(api_client: APITestClient, test_user: db_models.User, test_tweet: db_models.Tweet,
-                            liker_user: db_models.User, own_tweet: bool, db_session: AsyncSession):
+@pytest.mark.parametrize("own_tweet", [True, False])
+async def test_unlike_tweet(
+    api_client: APITestClient,
+    test_user: db_models.User,
+    test_tweet: db_models.Tweet,
+    liker_user: db_models.User,
+    own_tweet: bool,
+    db_session: AsyncSession,
+):
     """
     Проверка удаления лайка с твита.
 
@@ -169,24 +166,21 @@ async def test_unlike_tweet(api_client: APITestClient, test_user: db_models.User
 
     # проверяем, что лайк удалился
     like_qs = await db_session.execute(
-        select(db_models.Like)
-        .where(
-            and_(
-                db_models.Like.tweet_id == test_tweet.id,
-                db_models.Like.user_id == user.id
-            )
-        )
+        select(db_models.Like).where(and_(db_models.Like.tweet_id == test_tweet.id, db_models.Like.user_id == user.id))
     )
     assert len(like_qs.scalars().all()) == 0
 
 
 @pytest.mark.delete_like
-@pytest.mark.parametrize(
-    "own_tweet",
-    [True, False]
-)
-async def test_unlike_tweet_again(api_client: APITestClient, test_user: db_models.User, test_tweet: db_models.Tweet,
-                                  liker_user: db_models.User, own_tweet: bool, db_session: AsyncSession):
+@pytest.mark.parametrize("own_tweet", [True, False])
+async def test_unlike_tweet_again(
+    api_client: APITestClient,
+    test_user: db_models.User,
+    test_tweet: db_models.Tweet,
+    liker_user: db_models.User,
+    own_tweet: bool,
+    db_session: AsyncSession,
+):
     """
     Проверка повторного дизлайка твита, который пользователь уже дизлайкнул.
 
