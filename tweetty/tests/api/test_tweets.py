@@ -19,10 +19,7 @@ pytestmark = [pytest.mark.anyio, pytest.mark.tweets]
 @pytest.fixture
 async def test_tweet(db_session: AsyncSession, test_user: db_models.User):
     """Тестовый твит."""
-    tweet = db_models.Tweet(
-        content="test",
-        user_id=test_user.id
-    )
+    tweet = db_models.Tweet(content="test", user_id=test_user.id)
     db_session.add(tweet)
     await db_session.commit()
 
@@ -30,15 +27,10 @@ async def test_tweet(db_session: AsyncSession, test_user: db_models.User):
 
 
 @pytest.mark.post_tweet
-@pytest.mark.parametrize(
-    "tweet_data",
-    [
-        "t",
-        "test tweet"
-    ]
-)
-async def test_publish_new_tweet(api_client: APITestClient, test_user: db_models.User, tweet_data: str,
-                                 db_session: AsyncSession):
+@pytest.mark.parametrize("tweet_data", ["t", "test tweet"])
+async def test_publish_new_tweet(
+    api_client: APITestClient, test_user: db_models.User, tweet_data: str, db_session: AsyncSession
+):
     """Проверка публикации нового твита."""
     response = await api_client.publish_tweet({"tweet_data": tweet_data}, test_user.api_key)
     assert response.status_code == 201
@@ -48,9 +40,7 @@ async def test_publish_new_tweet(api_client: APITestClient, test_user: db_models
     assert resp["tweet_id"] is not None
 
     # проверяем, что твит есть и в БД
-    tweet_qs = await db_session.execute(
-        select(db_models.Tweet).where(db_models.Tweet.id == resp["tweet_id"])
-    )
+    tweet_qs = await db_session.execute(select(db_models.Tweet).where(db_models.Tweet.id == resp["tweet_id"]))
     assert tweet_qs.scalar_one_or_none() is not None
 
 
@@ -62,7 +52,7 @@ async def test_publish_new_tweet(api_client: APITestClient, test_user: db_models
         " ",
         "   ",
         "\r\n",
-    ]
+    ],
 )
 async def test_publish_empty_tweet(api_client: APITestClient, test_user: db_models.User, tweet_data: str):
     """Проверка невозможности добавить твит без текста или состоящий только из пробельных символов."""
@@ -79,9 +69,7 @@ async def test_truncate_tweet_text(api_client: APITestClient, test_user: db_mode
     assert response.status_code == 201
 
     tweet_id = response.json()["tweet_id"]
-    tweet_qs = await db_session.execute(
-        select(db_models.Tweet).where(db_models.Tweet.id == tweet_id)
-    )
+    tweet_qs = await db_session.execute(select(db_models.Tweet).where(db_models.Tweet.id == tweet_id))
     tweet = tweet_qs.scalar_one()
     assert len(tweet.content) == tweet_max_length
 
@@ -92,7 +80,7 @@ async def test_truncate_tweet_text(api_client: APITestClient, test_user: db_mode
     [
         "",
         "no" * 15,
-    ]
+    ],
 )
 async def test_publish_new_tweet_auth(api_client: APITestClient, api_key: str):
     """Проверка авторизации для публикации нового твита."""
@@ -102,21 +90,15 @@ async def test_publish_new_tweet_auth(api_client: APITestClient, api_key: str):
 
 
 @pytest.mark.post_tweet
-@pytest.mark.parametrize(
-    "media_count",
-    [0, 1, 2, 3]
-)
-async def test_publish_new_tweet_with_medias(api_client: APITestClient, test_user: db_models.User,
-                                             db_session: AsyncSession, media_count: int):
+@pytest.mark.parametrize("media_count", [0, 1, 2, 3])
+async def test_publish_new_tweet_with_medias(
+    api_client: APITestClient, test_user: db_models.User, db_session: AsyncSession, media_count: int
+):
     """Проверка добавления медиа к твиту."""
     # добавляем медиа
     medias = list()
     for i in range(media_count):
-        medias.append(
-            db_models.TweetMedia(
-                rel_uri=f"/test{i}"
-            )
-        )
+        medias.append(db_models.TweetMedia(rel_uri=f"/test{i}"))
     db_session.add_all(medias)
     await db_session.commit()
 
@@ -125,7 +107,7 @@ async def test_publish_new_tweet_with_medias(api_client: APITestClient, test_use
             "tweet_data": "test",
             "tweet_media_ids": [media.id for media in medias],
         },
-        test_user.api_key
+        test_user.api_key,
     )
     assert response.status_code == 201
 
@@ -138,17 +120,14 @@ async def test_publish_new_tweet_with_medias(api_client: APITestClient, test_use
 
 
 @pytest.mark.post_tweet
-async def test_publish_new_tweet_media_items(api_client: APITestClient, test_user: db_models.User,
-                                             db_session: AsyncSession):
+async def test_publish_new_tweet_media_items(
+    api_client: APITestClient, test_user: db_models.User, db_session: AsyncSession
+):
     """Проверка ограничения количества медиа-файлов, прикрепляемых к твиту"""
     # добавляем медиа
     medias = list()
     for i in range(api_models.NewTweetIn.MediasFieldConfig.max_items + 1):
-        medias.append(
-            db_models.TweetMedia(
-                rel_uri=f"/test{i}"
-            )
-        )
+        medias.append(db_models.TweetMedia(rel_uri=f"/test{i}"))
     db_session.add_all(medias)
     await db_session.commit()
 
@@ -157,14 +136,15 @@ async def test_publish_new_tweet_media_items(api_client: APITestClient, test_use
             "tweet_data": "test",
             "tweet_media_ids": [media.id for media in medias],
         },
-        test_user.api_key
+        test_user.api_key,
     )
     assert response.status_code == 422
 
 
 @pytest.mark.post_tweet
-async def test_publish_new_tweet_with_not_unique_media_items(api_client: APITestClient, test_user: db_models.User,
-                                                             db_session: AsyncSession):
+async def test_publish_new_tweet_with_not_unique_media_items(
+    api_client: APITestClient, test_user: db_models.User, db_session: AsyncSession
+):
     """Проверка, что список медиа должен состоять из уникальных элементов."""
     new_media = db_models.TweetMedia(
         rel_uri="/test",
@@ -188,7 +168,7 @@ async def test_publish_new_tweet_with_not_unique_media_items(api_client: APITest
     [
         "",
         "no" * 15,
-    ]
+    ],
 )
 async def test_delete_tweet_auth(api_client: APITestClient, api_key: str):
     """Проверка авторизации для удаления твита."""
@@ -198,19 +178,21 @@ async def test_delete_tweet_auth(api_client: APITestClient, api_key: str):
 
 
 @pytest.mark.delete_tweet
-async def test_delete_tweet(api_client: APITestClient, test_user: db_models.User, test_tweet: db_models.Tweet,
-                            db_session: AsyncSession, test_file: tuple[str, BinaryIO],
-                            test_file_uploaded_path: Union[PosixPath, WindowsPath]):
+async def test_delete_tweet(
+    api_client: APITestClient,
+    test_user: db_models.User,
+    test_tweet: db_models.Tweet,
+    db_session: AsyncSession,
+    test_file: tuple[str, BinaryIO],
+    test_file_uploaded_path: Union[PosixPath, WindowsPath],
+):
     """Проверка удаления существующего твита."""
     # создаем медиа к твиту
     os.makedirs(test_file_uploaded_path.resolve().parent, exist_ok=True)
     async with aiofiles.open(test_file_uploaded_path, "wb") as f:
         await f.write(test_file[1].read())
 
-    new_media = db_models.TweetMedia(
-        rel_uri=str(test_file_uploaded_path),
-        tweet_id=test_tweet.id
-    )
+    new_media = db_models.TweetMedia(rel_uri=str(test_file_uploaded_path), tweet_id=test_tweet.id)
     db_session.add(new_media)
     await db_session.commit()
 
@@ -221,9 +203,7 @@ async def test_delete_tweet(api_client: APITestClient, test_user: db_models.User
     assert resp["result"] is True
 
     # проверяем, что твита нет
-    tweet_qs = await db_session.execute(
-        select(db_models.Tweet).where(db_models.Tweet.id == test_tweet.id)
-    )
+    tweet_qs = await db_session.execute(select(db_models.Tweet).where(db_models.Tweet.id == test_tweet.id))
     assert tweet_qs.scalar_one_or_none() is None
     # поверяем, что медиа тоже удалено
     media_qs = await db_session.execute(
@@ -234,8 +214,9 @@ async def test_delete_tweet(api_client: APITestClient, test_user: db_models.User
 
 
 @pytest.mark.delete_tweet
-async def test_delete_tweet_idempotency(api_client: APITestClient, test_user: db_models.User,
-                                        test_tweet: db_models.Tweet):
+async def test_delete_tweet_idempotency(
+    api_client: APITestClient, test_user: db_models.User, test_tweet: db_models.Tweet
+):
     """Проверка идемпотентности удаления твита."""
     response = await api_client.delete_tweet(test_tweet.id, test_user.api_key)
     assert response.status_code == 200
@@ -247,14 +228,12 @@ async def test_delete_tweet_idempotency(api_client: APITestClient, test_user: db
 
 
 @pytest.mark.delete_tweet
-async def test_delete_someone_else_tweet(api_client: APITestClient, test_tweet: db_models.Tweet,
-                                         db_session: AsyncSession):
+async def test_delete_someone_else_tweet(
+    api_client: APITestClient, test_tweet: db_models.Tweet, db_session: AsyncSession
+):
     """Проверка запрета на удаление чужого твита."""
     # создаем юзера, который будет удалять твит
-    hacker = db_models.User(
-        nickname="hacker",
-        api_key="h" * 30
-    )
+    hacker = db_models.User(nickname="hacker", api_key="h" * 30)
     db_session.add(hacker)
     await db_session.commit()
 
@@ -270,7 +249,7 @@ async def test_delete_someone_else_tweet(api_client: APITestClient, test_tweet: 
     [
         "",
         "no" * 15,
-    ]
+    ],
 )
 async def test_get_tweets_auth(api_client: APITestClient, api_key: str):
     """Проверка авторизации для получения ленты твитов."""
@@ -289,25 +268,24 @@ async def test_get_tweets_without_any_tweet(api_client: APITestClient, test_user
 
 
 @pytest.fixture
-async def prepare_tweets(test_user: db_models.User, followed_user: db_models.User,
-                         db_session: AsyncSession):
+async def prepare_tweets(test_user: db_models.User, followed_user: db_models.User, db_session: AsyncSession):
     """Тестовые твиты для тестов получения твитов."""
+
     async def _prepare_tweets(own_tweets: bool) -> tuple[db_models.User, list[db_models.Tweet]]:
         if not own_tweets:
             user = followed_user
 
-            db_session.add(db_models.Follower(
-                user_id=followed_user.id,
-                follower_id=test_user.id,
-            ))
+            db_session.add(
+                db_models.Follower(
+                    user_id=followed_user.id,
+                    follower_id=test_user.id,
+                )
+            )
             await db_session.commit()
         else:
             user = test_user
 
-        tweets = [
-            db_models.Tweet(content=f"test{i}", user_id=user.id)
-            for i in range(3)
-        ]
+        tweets = [db_models.Tweet(content=f"test{i}", user_id=user.id) for i in range(3)]
         db_session.add_all(tweets)
         await db_session.commit()
 
@@ -317,10 +295,7 @@ async def prepare_tweets(test_user: db_models.User, followed_user: db_models.Use
 
 
 @pytest.mark.get_tweets
-@pytest.mark.parametrize(
-    "own_tweets",
-    [True, False]
-)
+@pytest.mark.parametrize("own_tweets", [True, False])
 async def test_get_tweets(api_client: APITestClient, test_user: db_models.User, prepare_tweets, own_tweets: bool):
     """
     Проверка получения твитов пользователя.
@@ -350,12 +325,10 @@ async def test_get_tweets(api_client: APITestClient, test_user: db_models.User, 
 
 
 @pytest.mark.get_tweets
-@pytest.mark.parametrize(
-    "own_tweets",
-    [True, False]
-)
-async def test_get_tweets_with_attachments(api_client: APITestClient, test_user: db_models.User,
-                                           db_session: AsyncSession, prepare_tweets, own_tweets: bool):
+@pytest.mark.parametrize("own_tweets", [True, False])
+async def test_get_tweets_with_attachments(
+    api_client: APITestClient, test_user: db_models.User, db_session: AsyncSession, prepare_tweets, own_tweets: bool
+):
     """
     Проверка получения твитов пользователя с вложениями.
 
@@ -365,13 +338,7 @@ async def test_get_tweets_with_attachments(api_client: APITestClient, test_user:
     user, tweets = await prepare_tweets(own_tweets)
 
     for idx, tweet in enumerate(tweets):
-        medias = [
-            db_models.TweetMedia(
-                rel_uri=STATIC_DIR + f"/test{i}.png",
-                tweet_id=tweet.id
-            )
-            for i in range(idx + 1)
-        ]
+        medias = [db_models.TweetMedia(rel_uri=STATIC_DIR + f"/test{i}.png", tweet_id=tweet.id) for i in range(idx + 1)]
         db_session.add_all(medias)
         await db_session.commit()
         await db_session.refresh(tweet, attribute_names=["medias"])
@@ -393,12 +360,10 @@ async def test_get_tweets_with_attachments(api_client: APITestClient, test_user:
 
 
 @pytest.mark.get_tweets
-@pytest.mark.parametrize(
-    "own_tweets",
-    [True, False]
-)
-async def test_get_tweets_with_likes(api_client: APITestClient, test_user: db_models.User,
-                                     db_session: AsyncSession, prepare_tweets, own_tweets: bool):
+@pytest.mark.parametrize("own_tweets", [True, False])
+async def test_get_tweets_with_likes(
+    api_client: APITestClient, test_user: db_models.User, db_session: AsyncSession, prepare_tweets, own_tweets: bool
+):
     """
     Проверка получения собственных твитов пользователя с лайками.
 
@@ -424,7 +389,7 @@ async def test_get_tweets_with_likes(api_client: APITestClient, test_user: db_mo
     users.append(test_user)
 
     for tweet in tweets:
-        likers = users[:random.randint(1, len(users))]
+        likers = users[: random.randint(1, len(users))]
 
         likes = [
             db_models.Like(
@@ -459,9 +424,13 @@ async def test_get_tweets_with_likes(api_client: APITestClient, test_user: db_mo
 
 
 @pytest.mark.get_tweets
-async def test_get_tweets_posted_at_and_likes_sorted_desc(api_client: APITestClient, test_user: db_models.User,
-                                                          test_tweet: db_models.Tweet, followed_user: db_models.User,
-                                                          db_session: AsyncSession):
+async def test_get_tweets_posted_at_and_likes_sorted_desc(
+    api_client: APITestClient,
+    test_user: db_models.User,
+    test_tweet: db_models.Tweet,
+    followed_user: db_models.User,
+    db_session: AsyncSession,
+):
     """Проверка, что твиты в ленте отсортированы по убыванию даты публикации и по убыванию количества лайков."""
     # создаем твит пользователю, на которого подпишемся
     followed_user_tweets = [
@@ -505,7 +474,7 @@ async def test_get_tweets_posted_at_and_likes_sorted_desc(api_client: APITestCli
                     tweet_id=tweet.id,
                     user_id=user.id,
                 )
-                for user in users[:idx + 1]
+                for user in users[: idx + 1]
             ]
             db_session.add_all(likes)
             await db_session.commit()
@@ -532,25 +501,17 @@ async def test_get_tweets_posted_at_and_likes_sorted_desc(api_client: APITestCli
 
 
 @pytest.mark.get_tweets
-@pytest.mark.parametrize(
-    "offset, limit",
-    [
-        (-1, None),
-        (0, None),
-        (None, -1),
-        (None, 0)
-    ]
-)
-async def test_get_tweets_invalid_pagination(api_client: APITestClient, test_user: db_models.User,
-                                             offset: Optional[int], limit: Optional[int]):
+@pytest.mark.parametrize("offset, limit", [(-1, None), (0, None), (None, -1), (None, 0)])
+async def test_get_tweets_invalid_pagination(
+    api_client: APITestClient, test_user: db_models.User, offset: Optional[int], limit: Optional[int]
+):
     """Проверка ошибки при неверных данных пагинации."""
     response = await api_client.get_tweets(test_user.api_key, offset=offset, limit=limit)
     assert response.status_code == 422
 
 
 @pytest.mark.get_tweets
-async def test_get_tweets_pagination(api_client: APITestClient, test_user: db_models.User,
-                                     db_session: AsyncSession):
+async def test_get_tweets_pagination(api_client: APITestClient, test_user: db_models.User, db_session: AsyncSession):
     """Проверка пагинации."""
     new_tweets = [
         db_models.Tweet(

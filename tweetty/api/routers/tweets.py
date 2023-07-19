@@ -10,8 +10,13 @@ from sqlalchemy.orm import aliased, selectinload
 from ...db import models
 from ...shortcuts import get_object_or_none
 from ..auth import get_authorized_user
-from ..exceptions import (HTTP_403_FORBIDDEN_DESC, HTTP_500_INTERNAL_SERVER_ERROR_DESC, ForbiddenError, NotFoundError,
-                          http_exception,)
+from ..exceptions import (
+    HTTP_403_FORBIDDEN_DESC,
+    HTTP_500_INTERNAL_SERVER_ERROR_DESC,
+    ForbiddenError,
+    NotFoundError,
+    http_exception,
+)
 from ..models import HTTPErrorModel, NewTweetIn, NewTweetOut, ResultModel, TweetListOut
 
 tweets_router = APIRouter(
@@ -26,35 +31,30 @@ likes_tags = tweets_tags + ["likes"]
 TweetId = Annotated[int, Path(description="Id твита")]
 
 
-async def get_tweet_or_none(db_session: Annotated[AsyncSession, Depends(models.db_session)],
-                            tweet_id: TweetId) -> Optional[models.Tweet]:
+async def get_tweet_or_none(
+    db_session: Annotated[AsyncSession, Depends(models.db_session)], tweet_id: TweetId
+) -> Optional[models.Tweet]:
     """Возвращает твит или `None`."""
-    return await get_object_or_none(
-        db_session,
-        models.Tweet,
-        models.Tweet.id == tweet_id
-    )
+    return await get_object_or_none(db_session, models.Tweet, models.Tweet.id == tweet_id)
 
 
-async def get_tweet_or_404(tweet: Annotated[Optional[models.Tweet], Depends(get_tweet_or_none)],
-                           tweet_id: TweetId) -> models.Tweet:
+async def get_tweet_or_404(
+    tweet: Annotated[Optional[models.Tweet], Depends(get_tweet_or_none)], tweet_id: TweetId
+) -> models.Tweet:
     """Возвращает твит или возбуждает `404 Not Found`, если твита нет."""
     if tweet is None:
         raise http_exception(NotFoundError(f"tweet {tweet_id} doesn't exist"), status_code=404)
     return tweet
 
 
-async def get_like_or_none(db_session: Annotated[AsyncSession, Depends(models.db_session)],
-                           tweet: Annotated[models.Tweet, Depends(get_tweet_or_404)],
-                           auth_user: Annotated[models.User, Depends(get_authorized_user)]) -> Optional[models.Like]:
+async def get_like_or_none(
+    db_session: Annotated[AsyncSession, Depends(models.db_session)],
+    tweet: Annotated[models.Tweet, Depends(get_tweet_or_404)],
+    auth_user: Annotated[models.User, Depends(get_authorized_user)],
+) -> Optional[models.Like]:
     """Возвращает лайк или `None`."""
     return await get_object_or_none(
-        db_session,
-        models.Like,
-        and_(
-            models.Like.tweet_id == tweet.id,
-            models.Like.user_id == auth_user.id
-        )
+        db_session, models.Like, and_(models.Like.tweet_id == tweet.id, models.Like.user_id == auth_user.id)
     )
 
 
@@ -161,10 +161,7 @@ async def like_tweet(
         response.status_code = 200
     else:
         # если не лайкал, то ставим лайк
-        new_like = models.Like(
-            tweet_id=tweet_id,
-            user_id=auth_user.id
-        )
+        new_like = models.Like(tweet_id=tweet_id, user_id=auth_user.id)
         db_session.add(new_like)
         await db_session.commit()
 
@@ -221,30 +218,15 @@ async def get_tweets(
     tweet_like = aliased(models.Like)
     liker = aliased(models.User)
 
-    stmt: Select = (select(models.Tweet)
-                    .join(
-                        models.TweetMedia,
-                        models.TweetMedia.tweet_id == models.Tweet.id,
-                        isouter=True
-                    )
-                    .join(
-                        tweet_author,
-                        tweet_author.id == models.Tweet.user_id
-                    )
-                    .join(
-                        tweet_like,
-                        tweet_like.tweet_id == models.Tweet.id,
-                        isouter=True
-                    )
-                    .join(
-                        liker,
-                        liker.id == tweet_like.user_id,
-                        isouter=True
-                    )
-                    .where(
-                        models.Tweet.user_id.in_(user_ids)
-                    )
-                    .group_by(models.Tweet.id))
+    stmt: Select = (
+        select(models.Tweet)
+        .join(models.TweetMedia, models.TweetMedia.tweet_id == models.Tweet.id, isouter=True)
+        .join(tweet_author, tweet_author.id == models.Tweet.user_id)
+        .join(tweet_like, tweet_like.tweet_id == models.Tweet.id, isouter=True)
+        .join(liker, liker.id == tweet_like.user_id, isouter=True)
+        .where(models.Tweet.user_id.in_(user_ids))
+        .group_by(models.Tweet.id)
+    )
     if offset is not None and limit is not None:
         stmt = stmt.offset((offset - 1) * limit)  # type: ignore[operator]
     if limit is not None:
@@ -258,7 +240,7 @@ async def get_tweets(
         stmt.options(
             selectinload(models.Tweet.medias),
             selectinload(models.Tweet.user),
-            selectinload(models.Tweet.likes).options(selectinload(models.Like.user))
+            selectinload(models.Tweet.likes).options(selectinload(models.Like.user)),
         )
     )
 

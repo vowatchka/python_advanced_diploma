@@ -12,9 +12,7 @@ async def table_exists(engine: AsyncEngine, table_name: str) -> bool:
     :param table_name: имя таблицы.
     """
     async with engine.begin() as conn:
-        is_exists = await conn.run_sync(
-            lambda sync_engine: inspect(sync_engine).has_table(table_name)
-        )
+        is_exists = await conn.run_sync(lambda sync_engine: inspect(sync_engine).has_table(table_name))
         return is_exists
 
 

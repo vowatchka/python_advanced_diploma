@@ -28,10 +28,11 @@ async def requested_user(db_session: AsyncSession):
         (False, "no" * 15),
         (True, ""),
         (True, "no" * 15),
-    ]
+    ],
 )
-async def test_get_user_auth(api_client: APITestClient, requested_user: db_models.User,
-                             own_profile: bool, api_key: str):
+async def test_get_user_auth(
+    api_client: APITestClient, requested_user: db_models.User, own_profile: bool, api_key: str
+):
     """
     Проверка авторизации для получения профиля пользователя.
 
@@ -47,12 +48,10 @@ async def test_get_user_auth(api_client: APITestClient, requested_user: db_model
 
 
 @pytest.mark.get_user
-@pytest.mark.parametrize(
-    "own_profile",
-    [True, False]
-)
-async def test_get_user(api_client: APITestClient, test_user: db_models.User, requested_user: db_models.User,
-                        own_profile: bool):
+@pytest.mark.parametrize("own_profile", [True, False])
+async def test_get_user(
+    api_client: APITestClient, test_user: db_models.User, requested_user: db_models.User, own_profile: bool
+):
     """
     Проверка получения профиля пользователя.
 
@@ -77,13 +76,14 @@ async def test_get_user(api_client: APITestClient, test_user: db_models.User, re
 
 
 @pytest.mark.get_user
-@pytest.mark.parametrize(
-    "own_profile",
-    [True, False]
-)
-async def test_get_user_with_followers(api_client: APITestClient, test_user: db_models.User,
-                                       requested_user: db_models.User, db_session: AsyncSession,
-                                       own_profile: bool):
+@pytest.mark.parametrize("own_profile", [True, False])
+async def test_get_user_with_followers(
+    api_client: APITestClient,
+    test_user: db_models.User,
+    requested_user: db_models.User,
+    db_session: AsyncSession,
+    own_profile: bool,
+):
     """
     Проверка получения профиля пользователя, у которого есть подписчики.
 
@@ -102,15 +102,7 @@ async def test_get_user_with_followers(api_client: APITestClient, test_user: db_
     db_session.add_all(followers)
     await db_session.commit()
 
-    db_session.add_all(
-        [
-            db_models.Follower(
-                user_id=user.id,
-                follower_id=follower.id
-            )
-            for follower in followers
-        ]
-    )
+    db_session.add_all([db_models.Follower(user_id=user.id, follower_id=follower.id) for follower in followers])
     await db_session.commit()
 
     if own_profile:
@@ -128,21 +120,20 @@ async def test_get_user_with_followers(api_client: APITestClient, test_user: db_
     for resp_follower in resp["user"]["followers"]:
         assert resp_follower["id"] is not None
 
-        follower = list(
-            filter(lambda f, fid=resp_follower["id"]: f.id == fid, followers)  # type: ignore[arg-type]
-        )[0]
+        follower = list(filter(lambda f, fid=resp_follower["id"]: f.id == fid, followers))[0]  # type: ignore[arg-type]
 
         assert resp_follower["name"] == follower.nickname
 
 
 @pytest.mark.get_user
-@pytest.mark.parametrize(
-    "own_profile",
-    [True, False]
-)
-async def test_get_user_with_following(api_client: APITestClient, test_user: db_models.User,
-                                       requested_user: db_models.User, db_session: AsyncSession,
-                                       own_profile: bool):
+@pytest.mark.parametrize("own_profile", [True, False])
+async def test_get_user_with_following(
+    api_client: APITestClient,
+    test_user: db_models.User,
+    requested_user: db_models.User,
+    db_session: AsyncSession,
+    own_profile: bool,
+):
     """
     Проверка получения профиля пользователя, который на кого-то подписан.
 
@@ -161,15 +152,7 @@ async def test_get_user_with_following(api_client: APITestClient, test_user: db_
     db_session.add_all(followings)
     await db_session.commit()
 
-    db_session.add_all(
-        [
-            db_models.Follower(
-                user_id=following.id,
-                follower_id=user.id
-            )
-            for following in followings
-        ]
-    )
+    db_session.add_all([db_models.Follower(user_id=following.id, follower_id=user.id) for following in followings])
     await db_session.commit()
 
     if own_profile:
@@ -187,9 +170,9 @@ async def test_get_user_with_following(api_client: APITestClient, test_user: db_
     for resp_following in resp["user"]["following"]:
         assert resp_following["id"] is not None
 
-        following = list(
-            filter(lambda f, fid=resp_following["id"]: f.id == fid, followings)  # type: ignore[arg-type]
-        )[0]
+        following = list(filter(lambda f, fid=resp_following["id"]: f.id == fid, followings))[  # type: ignore[arg-type]
+            0
+        ]
 
         assert resp_following["name"] == following.nickname
 

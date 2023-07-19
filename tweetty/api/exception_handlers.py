@@ -12,7 +12,4 @@ async def common_exception_handler(_: Request, ex: Exception) -> JSONResponse:
         message=str(ex),
     )
 
-    return JSONResponse(
-        HTTPErrorModel(detail=error_data).dict(by_alias=True),
-        status_code=500
-    )
+    return JSONResponse(HTTPErrorModel(detail=error_data).dict(by_alias=True), status_code=500)

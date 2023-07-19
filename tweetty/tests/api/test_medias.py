@@ -20,6 +20,7 @@ pytestmark = [pytest.mark.anyio, pytest.mark.medias]
 
 class MockMediaConfig:
     """Конфиг, которым будем мокать."""
+
     upload_path = "/tests/static/upload"
     upload_path_template = upload_path + "/{nickname}/medias/{filename}"
 
@@ -40,10 +41,9 @@ def test_file_uploaded_path(test_file: tuple[str, BinaryIO], test_user: db_model
     mocker.patch.object(api_models.NewMediaIn, "MediaConfig", new=MockMediaConfig)
 
     # путь к загруженному тестовому файлу
-    uploaded_file_path = OsPath(api_models.NewMediaIn.get_file_upload_path(
-        nickname=test_user.nickname,
-        filename=test_file[0]
-    ))
+    uploaded_file_path = OsPath(
+        api_models.NewMediaIn.get_file_upload_path(nickname=test_user.nickname, filename=test_file[0])
+    )
     yield uploaded_file_path
 
     # удалаем загруженный тестовый файл после теста
@@ -65,7 +65,7 @@ def generate_mediafile_name(file: UploadFile) -> str:
     [
         "",
         "no" * 15,
-    ]
+    ],
 )
 async def test_publish_new_media_auth(api_client: APITestClient, api_key: str, test_file: tuple[str, BinaryIO]):
     """Проверка авторизации для публикации нового медиа."""
@@ -75,8 +75,13 @@ async def test_publish_new_media_auth(api_client: APITestClient, api_key: str, t
 
 
 @pytest.mark.post_media
-async def test_publish_new_media(api_client: APITestClient, test_user: db_models.User, test_file: tuple[str, BinaryIO],
-                                 test_file_uploaded_path: Union[PosixPath, WindowsPath], db_session: AsyncSession):
+async def test_publish_new_media(
+    api_client: APITestClient,
+    test_user: db_models.User,
+    test_file: tuple[str, BinaryIO],
+    test_file_uploaded_path: Union[PosixPath, WindowsPath],
+    db_session: AsyncSession,
+):
     """Проверка публикации нового медиа."""
     response = await api_client.upload_media(test_file, test_user.api_key)
     assert response.status_code == 201
@@ -96,10 +101,14 @@ async def test_publish_new_media(api_client: APITestClient, test_user: db_models
 
 
 @pytest.mark.post_media
-async def test_rollback_uploaded_file(api_client: APITestClient, test_user: db_models.User,
-                                      test_file: tuple[str, BinaryIO],
-                                      test_file_uploaded_path: Union[PosixPath, WindowsPath],
-                                      mocker: MockerFixture, db_session: AsyncSession):
+async def test_rollback_uploaded_file(
+    api_client: APITestClient,
+    test_user: db_models.User,
+    test_file: tuple[str, BinaryIO],
+    test_file_uploaded_path: Union[PosixPath, WindowsPath],
+    mocker: MockerFixture,
+    db_session: AsyncSession,
+):
     """Проверка удаления загруженного файла, если не удается сохранить его в БД."""
     # мокаем объект БД
     error = DatabaseError("error", ("test",), TypeError("test"))
@@ -114,8 +123,9 @@ async def test_rollback_uploaded_file(api_client: APITestClient, test_user: db_m
 
 
 @pytest.mark.post_media
-async def test_save_mediafile_on_disk(test_file_uploaded_path: Union[PosixPath, WindowsPath],
-                                      test_file: tuple[str, BinaryIO]):
+async def test_save_mediafile_on_disk(
+    test_file_uploaded_path: Union[PosixPath, WindowsPath], test_file: tuple[str, BinaryIO]
+):
     """Проверка сохранения медиа-файла на диск."""
     assert not test_file_uploaded_path.exists()
 
@@ -127,15 +137,11 @@ async def test_save_mediafile_on_disk(test_file_uploaded_path: Union[PosixPath, 
 @pytest.mark.post_media
 async def test_save_mediafile_on_database(db_session: AsyncSession):
     """Проверка сохранения медиа-файла в базу данных."""
-    new_media = db_models.TweetMedia(
-        rel_uri="/test"
-    )
+    new_media = db_models.TweetMedia(rel_uri="/test")
 
     await media_routers.save_mediafile_on_database(db_session, new_media)
 
-    medias_qs = await db_session.execute(
-        select(db_models.TweetMedia).where(db_models.TweetMedia.id == new_media.id)
-    )
+    medias_qs = await db_session.execute(select(db_models.TweetMedia).where(db_models.TweetMedia.id == new_media.id))
     assert medias_qs.one_or_none() is not None
 
 
@@ -145,10 +151,17 @@ async def test_save_mediafile_on_database(db_session: AsyncSession):
     [
         (1, 5000, 413),
         (30000, 40000, 411),
-    ]
+    ],
 )
-async def test_upload_file_size(api_client: APITestClient, test_user: db_models.User, test_file: tuple[str, BinaryIO],
-                                api: FastAPI, min_size: int, max_size: int, expected_status_code: int):
+async def test_upload_file_size(
+    api_client: APITestClient,
+    test_user: db_models.User,
+    test_file: tuple[str, BinaryIO],
+    api: FastAPI,
+    min_size: int,
+    max_size: int,
+    expected_status_code: int,
+):
     """Проверка ограничения размера загружаемого файла."""
     # мокаем зависимость
     mock_upload_file_size_validator = media_routers.UploadFileSizeValidator(min_size=min_size, max_size=max_size)

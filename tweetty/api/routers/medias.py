@@ -94,7 +94,7 @@ async def save_mediafile_on_database(db_session: AsyncSession, new_media: models
         411: {"model": HTTPErrorModel, "description": "Media Too Small"},
         413: {"model": HTTPErrorModel, "description": "Media Too Large"},
     },
-    tags=["medias"]
+    tags=["medias"],
 )
 async def publish_new_media(
     db_session: Annotated[AsyncSession, Depends(models.db_session)],

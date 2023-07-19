@@ -48,9 +48,7 @@ class APITestClient:
         self._client = client
 
     @staticmethod
-    def tweets_route(tweet_id: Optional[int] = None,
-                     offset: Optional[int] = None,
-                     limit: Optional[int] = None) -> str:
+    def tweets_route(tweet_id: Optional[int] = None, offset: Optional[int] = None, limit: Optional[int] = None) -> str:
         """Возвращает роут твитов."""
         route = "/api/tweets"
         if tweet_id is not None:
@@ -109,9 +107,7 @@ class APITestClient:
             headers=self.api_key_header(api_key),
         )
 
-    async def get_tweets(self, api_key: str,
-                         offset: Optional[int] = None,
-                         limit: Optional[int] = None) -> Response:
+    async def get_tweets(self, api_key: str, offset: Optional[int] = None, limit: Optional[int] = None) -> Response:
         """Получить список твитов."""
         return await self._client.get(
             self.tweets_route(offset=offset, limit=limit),
@@ -170,10 +166,7 @@ class APITestClient:
 
     async def get_me(self, api_key: str) -> Response:
         """Получить собственный профиль пользователя."""
-        return await self._client.get(
-            self.me_route(),
-            headers=self.api_key_header(api_key)
-        )
+        return await self._client.get(self.me_route(), headers=self.api_key_header(api_key))
 
 
 @pytest.fixture

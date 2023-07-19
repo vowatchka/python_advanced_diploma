@@ -22,9 +22,7 @@ async def test_add_tweet_media(db_session):
     db_session.add(new_tweet_media)
     await db_session.commit()
 
-    queryset = await db_session.execute(
-        select(models.TweetMedia).where(models.TweetMedia.id == new_tweet_media.id)
-    )
+    queryset = await db_session.execute(select(models.TweetMedia).where(models.TweetMedia.id == new_tweet_media.id))
     added_tweet_media: models.TweetMedia = queryset.scalars().one()
     assert added_tweet_media.id is not None
     assert added_tweet_media.rel_uri == new_tweet_media.rel_uri
@@ -55,9 +53,7 @@ async def test_cascade_delete_tweet_medias(db_session):
         )
         assert len(tweet_medias_qs.scalars().all()) == len(new_tweet_medias)
 
-        tweet_qs = await db_session.execute(
-            select(models.Tweet).where(models.Tweet.id == tweet.id)
-        )
+        tweet_qs = await db_session.execute(select(models.Tweet).where(models.Tweet.id == tweet.id))
         await db_session.delete(tweet_qs.scalars().one())
 
         tweet_medias_qs = await db_session.execute(

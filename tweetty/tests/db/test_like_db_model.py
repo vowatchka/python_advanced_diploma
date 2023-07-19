@@ -24,9 +24,7 @@ async def test_add_like(db_session):
     db_session.add(new_like)
     await db_session.commit()
 
-    queryset = await db_session.execute(
-        select(models.Like).where(models.Like.id == new_like.id)
-    )
+    queryset = await db_session.execute(select(models.Like).where(models.Like.id == new_like.id))
     added_like: models.Like = queryset.scalars().one()
     assert added_like.id is not None
     assert added_like.tweet_id == new_like.tweet_id
@@ -54,33 +52,23 @@ async def test_cascade_delete_likes(db_session):
         ]
         db_session.add_all(likes)
 
-        likes_qs = await db_session.execute(
-            select(models.Like).where(models.Like.tweet_id == tweet.id)
-        )
+        likes_qs = await db_session.execute(select(models.Like).where(models.Like.tweet_id == tweet.id))
         assert len(likes_qs.scalars().all()) == len(likes)
 
         # удаляем одного пользователя, оставившего лайки
-        user_4_qs = await db_session.execute(
-            select(models.User).where(models.User.id == users[2].id)
-        )
+        user_4_qs = await db_session.execute(select(models.User).where(models.User.id == users[2].id))
         await db_session.delete(user_4_qs.scalars().one())
 
         likes = [like for like in likes if like.user_id != users[2].id]
 
-        likes_qs = await db_session.execute(
-            select(models.Like).where(models.Like.tweet_id == tweet.id)
-        )
+        likes_qs = await db_session.execute(select(models.Like).where(models.Like.tweet_id == tweet.id))
         assert len(likes_qs.scalars().all()) == len(likes)
 
         # удаляем твит с лайками
-        tweet_qs = await db_session.execute(
-            select(models.Tweet).where(models.Tweet.id == tweet.id)
-        )
+        tweet_qs = await db_session.execute(select(models.Tweet).where(models.Tweet.id == tweet.id))
         await db_session.delete(tweet_qs.scalars().one())
 
-        likes_qs = await db_session.execute(
-            select(models.Like).where(models.Like.tweet_id == tweet.id)
-        )
+        likes_qs = await db_session.execute(select(models.Like).where(models.Like.tweet_id == tweet.id))
         assert len(likes_qs.scalars().all()) == 0
 
 
@@ -93,10 +81,7 @@ async def test_can_like_own_tweet(db_session):
     db_session.add(user)
     await db_session.commit()
 
-    tweet = models.Tweet(
-        content="test",
-        user_id=user.id
-    )
+    tweet = models.Tweet(content="test", user_id=user.id)
     db_session.add(tweet)
     await db_session.commit()
 
@@ -118,24 +103,15 @@ async def test_cannot_like_twice(db_session):
     db_session.add(user)
     await db_session.commit()
 
-    tweet = models.Tweet(
-        content="test",
-        user_id=user.id
-    )
+    tweet = models.Tweet(content="test", user_id=user.id)
     db_session.add(tweet)
     await db_session.commit()
 
-    like_once = models.Like(
-        tweet_id=tweet.id,
-        user_id=user.id
-    )
+    like_once = models.Like(tweet_id=tweet.id, user_id=user.id)
     db_session.add(like_once)
     await db_session.commit()
 
-    like_twice = models.Like(
-        tweet_id=tweet.id,
-        user_id=user.id
-    )
+    like_twice = models.Like(tweet_id=tweet.id, user_id=user.id)
     with pytest.raises(IntegrityError, match=r".*UniqueViolationError.*"):
         db_session.add(like_twice)
         await db_session.commit()

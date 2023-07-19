@@ -17,9 +17,7 @@ async def test_add_user(db_session):
     db_session.add(new_user)
     await db_session.commit()
 
-    queryset = await db_session.execute(
-        select(models.User).where(models.User.id == new_user.id)
-    )
+    queryset = await db_session.execute(select(models.User).where(models.User.id == new_user.id))
     added_user: models.User = queryset.scalars().one()
     assert added_user.id is not None
     assert added_user.nickname == new_user.nickname

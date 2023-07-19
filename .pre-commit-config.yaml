@@ -14,7 +14,12 @@ repos:
       - id: check-merge-conflict
         args: ["--assume-in-merge"]
       - id: name-tests-test
+        exclude: "tests/db/utils.py"
         args: ["--pytest-test-first"]
+  - repo: https://github.com/ambv/black
+    rev: 23.7.0
+    hooks:
+      - id: black
   - repo: https://github.com/pycqa/isort
     rev: 5.12.0
     hooks:

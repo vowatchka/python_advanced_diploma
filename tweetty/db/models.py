@@ -62,32 +62,20 @@ class User(Base):
     )
 
     __table_args__ = (
-        CheckConstraint(
-            "length(nickname) >= 5 and length(nickname) <= 20",
-            name="nickname_length"
-        ),
-        CheckConstraint(
-            "length(first_name) >= 1 and length(first_name) <= 100",
-            name="first_name_length"
-        ),
-        CheckConstraint(
-            "length(last_name) >= 1 and length(last_name) <= 100",
-            name="last_name_length"
-        ),
-        CheckConstraint(
-            "length(api_key) >= 30 and length(api_key) <= 256",
-            name="api_key_length"
-        ),
+        CheckConstraint("length(nickname) >= 5 and length(nickname) <= 20", name="nickname_length"),
+        CheckConstraint("length(first_name) >= 1 and length(first_name) <= 100", name="first_name_length"),
+        CheckConstraint("length(last_name) >= 1 and length(last_name) <= 100", name="last_name_length"),
+        CheckConstraint("length(api_key) >= 30 and length(api_key) <= 256", name="api_key_length"),
     )
 
     tweets: Mapped[list[Tweet]] = relationship("Tweet", back_populates="user", cascade="all, delete-orphan")
     likes: Mapped[list[Like]] = relationship("Like", back_populates="user", cascade="all, delete-orphan")
-    followers: Mapped[list[Follower]] = relationship("Follower", back_populates="user",
-                                                     foreign_keys="Follower.user_id",
-                                                     cascade="all, delete-orphan")
-    followings: Mapped[list[Follower]] = relationship("Follower", back_populates="follower",
-                                                      foreign_keys="Follower.follower_id",
-                                                      cascade="all, delete-orphan")
+    followers: Mapped[list[Follower]] = relationship(
+        "Follower", back_populates="user", foreign_keys="Follower.user_id", cascade="all, delete-orphan"
+    )
+    followings: Mapped[list[Follower]] = relationship(
+        "Follower", back_populates="follower", foreign_keys="Follower.follower_id", cascade="all, delete-orphan"
+    )
 
     liked_tweets: AssociationProxy[list[Tweet]] = association_proxy("likes", "tweet")
     followed_users: AssociationProxy[list[User]] = association_proxy("followers", "follower")
@@ -127,12 +115,7 @@ class Tweet(Base):
 
     liked_by_users: AssociationProxy[list[User]] = association_proxy("likes", "user")
 
-    __table_args__ = (
-        CheckConstraint(
-            "length(content) >= 1",
-            name="content_length"
-        ),
-    )
+    __table_args__ = (CheckConstraint("length(content) >= 1", name="content_length"),)
 
 
 class TweetMedia(Base):
@@ -165,12 +148,7 @@ class TweetMedia(Base):
 
     tweet: Mapped[Tweet] = relationship("Tweet", back_populates="medias")
 
-    __table_args__ = (
-        CheckConstraint(
-            "length(rel_uri) >= 1",
-            name="rel_uri_length"
-        ),
-    )
+    __table_args__ = (CheckConstraint("length(rel_uri) >= 1", name="rel_uri_length"),)
 
 
 class Like(Base):
@@ -197,9 +175,7 @@ class Like(Base):
     tweet: Mapped[Tweet] = relationship("Tweet", back_populates="likes")
     user: Mapped[User] = relationship("User", back_populates="likes")
 
-    __table_args__ = (
-        UniqueConstraint("tweet_id", "user_id", name="unique_like"),
-    )
+    __table_args__ = (UniqueConstraint("tweet_id", "user_id", name="unique_like"),)
 
 
 class Follower(Base):
@@ -227,9 +203,6 @@ class Follower(Base):
     follower: Mapped[User] = relationship("User", back_populates="followings", foreign_keys=[follower_id])
 
     __table_args__ = (
-        CheckConstraint(
-            "user_id <> follower_id",
-            name="user_and_follower_not_equal"
-        ),
-        UniqueConstraint("user_id", "follower_id", name="unique_following")
+        CheckConstraint("user_id <> follower_id", name="user_and_follower_not_equal"),
+        UniqueConstraint("user_id", "follower_id", name="unique_following"),
     )
