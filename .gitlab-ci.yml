@@ -51,6 +51,8 @@ linting:
 
 testing:
   extends: linting
+  variables:
+    DEBUG: true
   services:
     - $POSTGRES_IMAGE
   script:
