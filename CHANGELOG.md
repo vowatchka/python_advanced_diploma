@@ -2,6 +2,17 @@
 
 <!--next-version-placeholder-->
 
+## v0.12.1 (2023-07-21)
+
+### Fix
+
+* #31: add sentry integration ([`d0754b2`](https://gitlab.skillbox.ru/vladimir_saltykov/python_advanced_diploma/-/commit/d0754b22ccdf928cc02b49c1258b6f8b1aeb0705))
+
+### Documentation
+
+* #35: add demo stand component scheme ([`a748a54`](https://gitlab.skillbox.ru/vladimir_saltykov/python_advanced_diploma/-/commit/a748a54b500cfd49460fdccffd48a016ad0cd9d5))
+* Add badges ([`75990b3`](https://gitlab.skillbox.ru/vladimir_saltykov/python_advanced_diploma/-/commit/75990b36894fe328c77a81462fe6848839b82f37))
+
 ## v0.12.0 (2023-06-27)
 
 ### Feature
