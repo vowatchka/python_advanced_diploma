@@ -220,7 +220,6 @@ async def get_tweets(
 
     stmt: Select = (
         select(models.Tweet)
-        .join(models.TweetMedia, models.TweetMedia.tweet_id == models.Tweet.id, isouter=True)
         .join(tweet_author, tweet_author.id == models.Tweet.user_id)
         .join(tweet_like, tweet_like.tweet_id == models.Tweet.id, isouter=True)
         .join(liker, liker.id == tweet_like.user_id, isouter=True)
