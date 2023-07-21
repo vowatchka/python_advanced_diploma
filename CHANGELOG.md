@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.12.2 (2023-07-21)
+
+### Fix
+
+* #38: fix tweet sorting ([`b075eb7`](https://gitlab.skillbox.ru/vladimir_saltykov/python_advanced_diploma/-/commit/b075eb7c93537f8d504f06d6bc9e6f8e72ba2adc))
+
 ## v0.12.1 (2023-07-21)
 
 ### Fix
