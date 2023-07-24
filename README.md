@@ -2,6 +2,8 @@
 
 [![pipeline](https://gitlab.skillbox.ru/vladimir_saltykov/python_advanced_diploma/badges/master/pipeline.svg)](https://gitlab.skillbox.ru/vladimir_saltykov/python_advanced_diploma/-/pipelines) [![coverage](https://gitlab.skillbox.ru/vladimir_saltykov/python_advanced_diploma/badges/master/coverage.svg)](https://gitlab.skillbox.ru/vladimir_saltykov/python_advanced_diploma/-/commits/master) [![last release](https://gitlab.skillbox.ru/vladimir_saltykov/python_advanced_diploma/-/badges/release.svg)](https://gitlab.skillbox.ru/vladimir_saltykov/python_advanced_diploma/-/releases)
 
+![главная страница tweetty](docs/imgs/tweetty-main-page.png)
+
 ## Задача
 Для корпоративного сервиса микроблогов необходимо реализовать бэкенд приложения. Поскольку это корпоративная сеть, то функционал будет урезан относительно оригинала.
 
@@ -93,7 +95,7 @@ make test
 ### Запуск и настройка демо-стенда
 1. Поднять демо-стенд. Автоматическое настраивание виртуальных машин займет где-то 15-20 минут.
    ```shell
-   vagrant up
+   vagrant up gitlab backend frontend
    ```
 
 1. Перейти в GitLab [http://192.168.1.34/](http://192.168.1.34/) и зарегистрировать нового пользователя
@@ -185,7 +187,7 @@ make test
 
 1. Пушить в GitLab демо-стенда можно командой
    ```shell
-   git push -u --tags demo <local_branch>:<remote_branch>
+   git push --tags -u demo <local_branch>:<remote_branch>
    ```
 
 ## Полезные материалы
